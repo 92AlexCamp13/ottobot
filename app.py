@@ -107,21 +107,6 @@ hr { border-color: rgba(167, 139, 250, 0.15); }
 [data-testid="stBottomBlockContainer"] { background: #1a1625 !important; }
 header[data-testid="stHeader"] { background: #1a1625 !important; }
 footer { display: none !important; }
-/* Contrainte largeur messages */
-.stChatMessage {
-  max-width: 100% !important;
-  overflow-wrap: break-word !important;
-  word-break: break-word !important;
-}
-.stChatMessage pre, .stChatMessage code {
-  white-space: pre-wrap !important;
-  word-break: break-all !important;
-}
-/* Masquer tooltips */
-[data-testid="stSidebarCollapseButton"],
-[data-testid="stSidebarCollapseButton"] + div {
-  display: none !important;
-}
 a { color: #a78bfa !important; }
 a:hover { color: #c4b5fd !important; }
 </style>
@@ -132,7 +117,7 @@ a:hover { color: #c4b5fd !important; }
 st.markdown(
     """
     <div style="text-align:center;padding:2rem 0 1.5rem 0;">
-      <div style="font-size:56px;font-weight:700;letter-spacing:-0.02em;color:#f0ecf8;font-family:'Orbitron', sans-serif;">Ottobot</div>
+      <div style="font-size:32px;font-weight:700;letter-spacing:-0.02em;color:#f0ecf8;font-family:'Orbitron', sans-serif;">Ottobot</div>
     </div>
     """,
     unsafe_allow_html=True,
@@ -156,11 +141,7 @@ CHROMA_PATH = os.path.join(PROJECT_DIR, "chroma_db")
 COLLECTION_NAME = "kbase"
 
 if "chroma" not in st.session_state:
- st.session_state["chroma"] = chromadb.CloudClient(
-    tenant=os.environ["CHROMA_TENANT"],
-    database=os.environ["CHROMA_DATABASE"],
-    api_key=os.environ["CHROMA_API_KEY"],
-)
+    st.session_state["chroma"] = chromadb.PersistentClient(path=CHROMA_PATH)
 
 def get_collection():
     return st.session_state["chroma"].get_or_create_collection(name=COLLECTION_NAME)
@@ -209,12 +190,17 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
 # Sidebar
 # ----------------------------
 with st.sidebar:
-    st.markdown("**Parametres**")
     admin_token = os.environ.get("OTTOBOT_ADMIN_TOKEN", "")
-    entered_password = st.text_input("Mot de passe admin", type="password")
-    is_admin = bool(admin_token) and hmac.compare_digest(entered_password, admin_token)
-    if entered_password and not is_admin:
-        st.caption("Mot de passe incorrect.")
+    is_admin_url = st.query_params.get("admin", "") == "true"
+
+    if is_admin_url:
+        st.markdown("**Parametres Admin**")
+        entered_password = st.text_input("Mot de passe admin", type="password")
+        is_admin = bool(admin_token) and hmac.compare_digest(entered_password, admin_token)
+        if entered_password and not is_admin:
+            st.caption("Mot de passe incorrect.")
+    else:
+        is_admin = False
 
     top_k = 3
 
@@ -361,14 +347,11 @@ if prompt:
         context = "\n\n---\n\n".join(contexts)
 
         system = (
-           "Tu es Ottobot, un assistant support pour Otto Academy by VodFactory. "
-            "Tu as accès à des extraits de tutoriels comme contexte. "
-            "Utilise ce contexte pour construire une réponse claire et pédagogique, "
-            "en reformulant avec tes propres mots — ne recopie jamais le texte tel quel. "
-            "Explique les étapes de façon simple, comme si tu parlais à quelqu'un qui découvre le sujet. "
+            "Tu es Ottobot, un assistant support pour Otto Academy by VodFactory. "
+            "Réponds UNIQUEMENT à partir du CONTEXTE fourni. "
             "Si le contexte ne contient pas l'information, dis : "
             "\"Je ne trouve pas cette information dans les tutoriels.\" "
-            "Réponds toujours en français, sans emojis, de façon concise et utile."
+            "Réponse concise, utile, en français. Sans emojis."
         )
 
         with st.spinner("Génération de la réponse..."):
@@ -386,12 +369,15 @@ if prompt:
             st.markdown(answer)
 
             if contexts:
-                sources_html = ""
-                for i, (c, meta) in enumerate(zip(contexts, metadatas), 1):
-                    src = (meta or {}).get("source", "?")
-                    url = (meta or {}).get("url", "")
-                    label = f"Extrait {i} — {src}"
-                    safe_c = html.escape(c)
-                    link = f"<br/><a href='{url}' target='_blank'>Voir le tutoriel</a>" if url else ""
-                    sources_html += f"<div class='sourcebox'><b>{label}</b><br/>{safe_c}{link}</div>"
-                st.markdown(f"<div style='margin-top:8px;'><details><summary style='color:#a78bfa;cursor:pointer;font-size:0.9rem;'>Sources</summary>{sources_html}</details></div>", unsafe_allow_html=True)
+                with st.expander("Sources"):
+                    for i, (c, meta) in enumerate(zip(contexts, metadatas), 1):
+                        src = (meta or {}).get("source", "?")
+                        url = (meta or {}).get("url", "")
+                        label = f"Extrait {i} — {src}"
+                        safe_c = html.escape(c)
+                        st.markdown(
+                            f"<div class='sourcebox'><b>{label}</b><br/>{safe_c}</div>",
+                            unsafe_allow_html=True,
+                        )
+                        if url:
+                            st.markdown(f"[Voir le tutoriel]({url})")

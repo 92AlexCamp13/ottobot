@@ -118,11 +118,9 @@ footer { display: none !important; }
   word-break: break-all !important;
 }
 /* Masquer tooltips */
-[data-testid="tooltipHoverTarget"],
-div[class*="tooltip"],
-[role="tooltip"] {
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapseButton"] + div {
   display: none !important;
-  visibility: hidden !important;
 }
 a { color: #a78bfa !important; }
 a:hover { color: #c4b5fd !important; }

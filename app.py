@@ -108,8 +108,12 @@ hr { border-color: rgba(167, 139, 250, 0.15); }
 header[data-testid="stHeader"] { background: #1a1625 !important; }
 footer { display: none !important; }
 /* Masquer bouton collapse sidebar */
-[data-testid="stSidebarCollapseButton"] {
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapseButton"] *,
+button[kind="header"] {
+  display: none !important;
   visibility: hidden !important;
+  pointer-events: none !important;
 }
 a { color: #a78bfa !important; }
 a:hover { color: #c4b5fd !important; }
@@ -121,7 +125,7 @@ a:hover { color: #c4b5fd !important; }
 st.markdown(
     """
     <div style="text-align:center;padding:2rem 0 1.5rem 0;">
-      <div style="font-size:32px;font-weight:700;letter-spacing:-0.02em;color:#f0ecf8;font-family:'Orbitron', sans-serif;">Ottobot</div>
+      <div style="font-size:56px;font-weight:700;letter-spacing:-0.02em;color:#f0ecf8;font-family:'Orbitron', sans-serif;">Ottobot</div>
     </div>
     """,
     unsafe_allow_html=True,

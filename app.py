@@ -107,6 +107,10 @@ hr { border-color: rgba(167, 139, 250, 0.15); }
 [data-testid="stBottomBlockContainer"] { background: #1a1625 !important; }
 header[data-testid="stHeader"] { background: #1a1625 !important; }
 footer { display: none !important; }
+/* Masquer bouton collapse sidebar */
+[data-testid="stSidebarCollapseButton"] {
+  visibility: hidden !important;
+}
 a { color: #a78bfa !important; }
 a:hover { color: #c4b5fd !important; }
 </style>

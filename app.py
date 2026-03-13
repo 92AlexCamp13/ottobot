@@ -90,12 +90,18 @@ section[data-testid="stSidebar"] {
   box-shadow: none !important;
 }
 .streamlit-expanderHeader,
-[data-testid="stExpander"] summary,
-[data-testid="stExpanderToggleIcon"] {
+[data-testid="stExpander"] summary {
   color: #c4b5fd !important;
   font-weight: 500 !important;
 }
-[data-testid="stExpanderToggleIcon"] svg { display: inline !important; }
+[data-testid="stExpanderToggleIcon"] {
+  font-size: 0 !important;
+}
+[data-testid="stExpanderToggleIcon"] svg {
+  display: inline-block !important;
+  width: 1rem !important;
+  height: 1rem !important;
+}
 button[data-testid="stBaseButton-minimal"] { color: #c4b5fd !important; }
 hr { border-color: rgba(167, 139, 250, 0.15); }
 .stChatInput {

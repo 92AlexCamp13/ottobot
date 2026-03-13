@@ -115,6 +115,12 @@ button[kind="header"] {
   visibility: hidden !important;
   pointer-events: none !important;
 }
+/* Masquer icône details natif */
+details summary::marker,
+details summary::-webkit-details-marker {
+  display: none !important;
+  content: "" !important;
+}
 a { color: #a78bfa !important; }
 a:hover { color: #c4b5fd !important; }
 </style>

@@ -178,15 +178,36 @@ def collection_has_data(col) -> bool:
 def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 150) -> list[str]:
     if overlap >= chunk_size:
         raise ValueError("overlap doit être inférieur à chunk_size")
+    
     text = " ".join(text.split()).strip()
     if not text:
         return []
-    chunks, start = [], 0
+    
+    # Si le texte est plus court qu'un chunk, retourner tel quel
+    if len(text) <= chunk_size:
+        return [text]
+    
+    chunks = []
+    start = 0
+    step = chunk_size - overlap  # Pas d'avancement fixe (850 par défaut)
+    
     while start < len(text):
-        end = min(len(text), start + chunk_size)
+        end = start + chunk_size
         chunks.append(text[start:end])
-        start = end - overlap if end - overlap > start else start + 1
+        start += step
+        
+        # Arrêter si le prochain chunk ne couvrirait que du contenu déjà dans l'overlap
+        if start + overlap >= len(text):
+            break
+    
     return chunks
+
+# === TEST TEMPORAIRE (à supprimer après) ===
+if __name__ == "__main__":
+    test_text = "A" * 2000
+    chunks = chunk_text(test_text)
+    print(f"Texte de 2000 caractères → {len(chunks)} chunks")
+    # Attendu : 3 chunks
 
 @st.cache_data(show_spinner=False)
 def embed_query(text: str) -> list[float]:
@@ -361,16 +382,21 @@ if prompt:
         context = "\n\n---\n\n".join(contexts)
 
         system = (
-            "Tu es Ottobot, un assistant support pour Otto Academy by VodFactory. "
-            "Réponds UNIQUEMENT à partir du CONTEXTE fourni. "
-            "Si le contexte ne contient pas l'information, dis : "
-            "\"Je ne trouve pas cette information dans les tutoriels.\" "
-            "Réponse concise, utile, en français. Sans emojis."
-        )
+    "Tu es Ottobot, l'assistant intelligent d'Otto Academy by VodFactory. "
+    "Tu aides les utilisateurs à comprendre et utiliser la plateforme Otto. "
+    "Tu as accès à des extraits de tutoriels comme contexte. "
+    "Utilise ce contexte pour construire une réponse claire, pédagogique et bienveillante. "
+    "Reformule toujours avec tes propres mots — ne recopie jamais le texte tel quel. "
+    "Si la question comporte plusieurs étapes, structure ta réponse en étapes numérotées. "
+    "Si le contexte ne contient pas l'information, dis : "
+    "'Je ne trouve pas cette information dans les tutoriels. "
+    "N\'hésitez pas à contacter le support VodFactory.' "
+    "Réponds toujours en français, sans emojis, de façon concise et utile."
+)
 
         with st.spinner("Génération de la réponse..."):
             resp = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4o",
                 messages=[
                     {"role": "system", "content": system},
                     {"role": "user", "content": f"CONTEXTE:\n{context}\n\nQUESTION:\n{prompt}"}

@@ -1,5 +1,6 @@
-streamlit==1.32.0
+streamlit==1.44.0
 openai
 chromadb
 beautifulsoup4
 requests
+pillow>=11.0.0

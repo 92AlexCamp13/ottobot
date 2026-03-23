@@ -104,7 +104,9 @@ header[data-testid="stHeader"] {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
-  padding: 20px 0 !important;
+  padding: 8px 0 !important;
+  min-height: auto !important;
+  max-height: 70px !important;
 }
 </style>
 """, unsafe_allow_html=True)

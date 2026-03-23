@@ -8,7 +8,7 @@ import chromadb
 # ----------------------------
 # Page config + style
 # ----------------------------
-st.set_page_config(page_title="Ottobot", page_icon="logo_OttoBot.png", layout="wide")
+st.set_page_config(page_title="Ottobot", page_icon="logo_OttoBot.png", layout="centered", initial_sidebar_state="collapsed")
 
 st.markdown(
     """
@@ -49,6 +49,10 @@ h1, h2, h3 {
   margin-bottom: 10px;
   font-size: 0.92rem;
   color: #c4bdd4;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 .smallmuted { color: #9b93ab; font-size: 0.9rem; }
 .stTextInput input, .stChatInput textarea {
@@ -69,15 +73,37 @@ h1, h2, h3 {
 .stButton button:hover {
   background: rgba(167, 139, 250, 0.25) !important;
 }
-section[data-testid="stSidebar"] {
-  background: #13101e !important;
-  border-right: 1px solid rgba(167, 139, 250, 0.15);
-}
+
+/* Chat messages - éviter le débordement */
 .stChatMessage {
   background: rgba(255,255,255,0.03) !important;
   border: 1px solid rgba(167, 139, 250, 0.12) !important;
   border-radius: 12px !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
 }
+.stChatMessage > div {
+  max-width: 100% !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+.stChatMessage p,
+.stChatMessage li,
+.stChatMessage span {
+  max-width: 100% !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+.stChatMessage pre, 
+.stChatMessage code {
+  white-space: pre-wrap !important;
+  overflow-x: auto !important;
+  max-width: 100% !important;
+  display: block !important;
+}
+
 .stChatMessage [data-testid="chatAvatarIcon-user"],
 .stChatMessage [data-testid="chatAvatarIcon-assistant"],
 .stChatMessage img,
@@ -89,19 +115,23 @@ section[data-testid="stSidebar"] {
   border-color: rgba(167, 139, 250, 0.4) !important;
   box-shadow: none !important;
 }
-.streamlit-expanderHeader,
-[data-testid="stExpander"] summary {
-  color: #c4b5fd !important;
-  font-weight: 500 !important;
-}
-[data-testid="stExpanderToggleIcon"] {
+
+/* Masquer TOUTES les icônes Material buguées */
+[data-testid="stIconMaterial"],
+span[data-testid="stIconMaterial"],
+span[translate="no"],
+.st-emotion-cache-1c9yjad,
+.exvv1vr0 {
+  display: none !important;
+  visibility: hidden !important;
   font-size: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  clip: rect(0,0,0,0) !important;
 }
-[data-testid="stExpanderToggleIcon"] svg {
-  display: inline-block !important;
-  width: 1rem !important;
-  height: 1rem !important;
-}
+
 button[data-testid="stBaseButton-minimal"] { color: #c4b5fd !important; }
 hr { border-color: rgba(167, 139, 250, 0.15); }
 .stChatInput {
@@ -113,22 +143,36 @@ hr { border-color: rgba(167, 139, 250, 0.15); }
 [data-testid="stBottomBlockContainer"] { background: #1a1625 !important; }
 header[data-testid="stHeader"] { background: #1a1625 !important; }
 footer { display: none !important; }
-/* Masquer bouton collapse sidebar */
-[data-testid="stSidebarCollapseButton"],
-[data-testid="stSidebarCollapseButton"] *,
-button[kind="header"] {
+
+/* Masquer complètement la sidebar */
+section[data-testid="stSidebar"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapseButton"] {
   display: none !important;
+  width: 0 !important;
   visibility: hidden !important;
-  pointer-events: none !important;
 }
-/* Masquer icône details natif */
-details summary::marker,
-details summary::-webkit-details-marker {
-  display: none !important;
-  content: "" !important;
-}
+
 a { color: #a78bfa !important; }
 a:hover { color: #c4b5fd !important; }
+/* Forcer suppression sidebar */
+[data-testid="stSidebar"],
+[data-testid="stSidebarContent"],
+[data-testid="stSidebarNav"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapseButton"],
+.st-emotion-cache-1gwvy71,
+.st-emotion-cache-uf99v8 {
+  display: none !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
 </style>
 """,
     unsafe_allow_html=True,
@@ -189,31 +233,22 @@ def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 150) -> list[st
     if not text:
         return []
     
-    # Si le texte est plus court qu'un chunk, retourner tel quel
     if len(text) <= chunk_size:
         return [text]
     
     chunks = []
     start = 0
-    step = chunk_size - overlap  # Pas d'avancement fixe (850 par défaut)
+    step = chunk_size - overlap
     
     while start < len(text):
         end = start + chunk_size
         chunks.append(text[start:end])
         start += step
         
-        # Arrêter si le prochain chunk ne couvrirait que du contenu déjà dans l'overlap
         if start + overlap >= len(text):
             break
     
     return chunks
-
-# === TEST TEMPORAIRE (à supprimer après) ===
-if __name__ == "__main__":
-    test_text = "A" * 2000
-    chunks = chunk_text(test_text)
-    print(f"Texte de 2000 caractères → {len(chunks)} chunks")
-    # Attendu : 3 chunks
 
 @st.cache_data(show_spinner=False)
 def embed_query(text: str) -> list[float]:
@@ -228,36 +263,20 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
     return [x.embedding for x in resp.data]
 
 # ----------------------------
-# Sidebar
+# Config (sans sidebar)
 # ----------------------------
-with st.sidebar:
-    admin_token = os.environ.get("OTTOBOT_ADMIN_TOKEN", "")
-    is_admin_url = st.query_params.get("admin", "") == "true"
+admin_token = os.environ.get("OTTOBOT_ADMIN_TOKEN", "")
+is_admin_url = st.query_params.get("admin", "") == "true"
 
-    if is_admin_url:
-        st.markdown("**Parametres Admin**")
-        entered_password = st.text_input("Mot de passe admin", type="password")
-        is_admin = bool(admin_token) and hmac.compare_digest(entered_password, admin_token)
-        if entered_password and not is_admin:
-            st.caption("Mot de passe incorrect.")
-    else:
-        is_admin = False
+if is_admin_url:
+    entered_password = st.text_input("Mot de passe admin", type="password")
+    is_admin = bool(admin_token) and hmac.compare_digest(entered_password, admin_token)
+    if entered_password and not is_admin:
+        st.caption("Mot de passe incorrect.")
+else:
+    is_admin = False
 
-    top_k = 3
-
-    st.divider()
-    st.markdown("**Historique**")
-    if st.session_state.get("chat"):
-        questions = [m for m in st.session_state["chat"] if m["role"] == "user"]
-        for q in questions:
-            st.markdown(
-                f"<div style='border:1px solid rgba(167,139,250,0.2);border-radius:8px;"
-                f"padding:8px 10px;margin-bottom:8px;font-size:0.85rem;color:#c4b5fd;'>"
-                f"<b>{q['content'][:50]}...</b></div>",
-                unsafe_allow_html=True,
-            )
-    else:
-        st.caption("Aucune question posée pour l'instant.")
+top_k = 3
 
 # ----------------------------
 # Chroma collection
@@ -275,7 +294,6 @@ if is_admin:
     if collection_has_data(collection):
         st.markdown(f"**Chunks indexés :** {collection.count()}")
 
-        # Liste des tutoriels — sans expander pour éviter les bugs
         results = collection.get(include=["metadatas"])
         sources = {}
         for meta in results["metadatas"]:
@@ -300,7 +318,6 @@ if is_admin:
 
     st.divider()
 
-    # Recherche de test
     st.markdown("**Tester une recherche dans la base**")
     test_query = st.text_input("Entrez un mot-clé ou une question...")
     if test_query and collection_has_data(collection):
@@ -321,7 +338,6 @@ if is_admin:
 
     st.divider()
 
-    # Zone dangereuse
     st.markdown("**Zone dangereuse**")
     if st.button("Vider et réinitialiser la base", type="secondary"):
         clear_collection()
@@ -348,8 +364,9 @@ if not st.session_state.get("chat"):
     ]
     for col, question in zip([col1, col2, col3], questions_suggerees):
         with col:
-            if st.button(question, use_container_width=True):
+            if st.button(question, use_container_width=True, key=f"btn_{question[:10]}"):
                 st.session_state["pending_prompt"] = question
+                st.rerun()
 
 st.divider()
 
@@ -362,7 +379,10 @@ if "chat" not in st.session_state:
 if "pending_prompt" not in st.session_state:
     st.session_state["pending_prompt"] = None
 
-_pending = st.session_state.pop("pending_prompt", None)
+_pending = st.session_state.get("pending_prompt")
+if _pending:
+    st.session_state["pending_prompt"] = None
+
 prompt = st.chat_input("Posez votre question...") or _pending
 
 for m in st.session_state["chat"]:
@@ -388,25 +408,36 @@ if prompt:
         context = "\n\n---\n\n".join(contexts)
 
         system = (
-    "Tu es Ottobot, l'assistant intelligent d'Otto Academy by VodFactory. "
-    "Tu aides les utilisateurs à comprendre et utiliser la plateforme Otto. "
-    "Tu as accès à des extraits de tutoriels comme contexte. "
-    "Utilise ce contexte pour construire une réponse claire, pédagogique et bienveillante. "
-    "Reformule toujours avec tes propres mots — ne recopie jamais le texte tel quel. "
-    "Si la question comporte plusieurs étapes, structure ta réponse en étapes numérotées. "
-    "Si le contexte ne contient pas l'information, dis : "
-    "'Je ne trouve pas cette information dans les tutoriels. "
-    "N\'hésitez pas à contacter le support VodFactory.' "
-    "Réponds toujours en français, sans emojis, de façon concise et utile."
-)
+            "Tu es Ottobot, l'assistant intelligent d'Otto Academy by VodFactory. "
+            "Tu aides les utilisateurs à comprendre et utiliser la plateforme Otto. "
+            "Tu as accès à des extraits de tutoriels comme contexte. "
+            "Utilise ce contexte pour construire une réponse claire, pédagogique et bienveillante. "
+            "Reformule toujours avec tes propres mots — ne recopie jamais le texte tel quel. "
+            "Si la question comporte plusieurs étapes, structure ta réponse en étapes numérotées. "
+            "Si le contexte ne contient pas l'information, dis : "
+            "'Je ne trouve pas cette information dans les tutoriels. "
+            "N'hésitez pas à contacter le support VodFactory.' "
+            "Réponds toujours en français, sans emojis, de façon concise et utile."
+        )
 
         with st.spinner("Génération de la réponse..."):
+            # Construire l'historique des messages pour le LLM
+            messages = [{"role": "system", "content": system}]
+            
+            # Ajouter les 6 derniers messages (3 échanges question/réponse)
+            recent_history = st.session_state["chat"][-6:]
+            for msg in recent_history:
+                messages.append({"role": msg["role"], "content": msg["content"]})
+            
+            # Ajouter la question actuelle avec le contexte RAG
+            messages.append({
+                "role": "user", 
+                "content": f"CONTEXTE (extraits de tutoriels):\n{context}\n\nQUESTION:\n{prompt}"
+            })
+            
             resp = client.chat.completions.create(
                 model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": f"CONTEXTE:\n{context}\n\nQUESTION:\n{prompt}"}
-                ],
+                messages=messages,
             )
             answer = resp.choices[0].message.content
 
@@ -414,16 +445,5 @@ if prompt:
         with st.chat_message("assistant"):
             st.markdown(answer)
 
-            if contexts:
-                with st.expander("Sources"):
-                    for i, (c, meta) in enumerate(zip(contexts, metadatas), 1):
-                        src = (meta or {}).get("source", "?")
-                        url = (meta or {}).get("url", "")
-                        label = f"Extrait {i} — {src}"
-                        safe_c = html.escape(c)
-                        st.markdown(
-                            f"<div class='sourcebox'><b>{label}</b><br/>{safe_c}</div>",
-                            unsafe_allow_html=True,
-                        )
-                        if url:
-                            st.markdown(f"[Voir le tutoriel]({url})")
+            # Sources désactivées (bug icône Streamlit)
+            pass

@@ -5,36 +5,15 @@ import streamlit as st
 from openai import OpenAI
 import chromadb
 
-# ----------------------------
-# Page config + style
-# ----------------------------
 st.set_page_config(page_title="Ottobot", page_icon="logo_OttoBot.png", layout="centered")
 
-st.markdown(
-    """
+st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Orbitron:wght@900&display=swap');
-
-*, body, .stApp {
-  font-family: 'IBM Plex Sans', sans-serif !important;
-}
-[style*="Orbitron"] {
-  font-family: 'Orbitron', sans-serif !important;
-}
-.stApp {
-  background: #1a1625;
-  color: #e8e4f0;
-}
-.block-container {
-  padding-top: 2.5rem;
-  max-width: 760px;
-  margin: 0 auto;
-}
-h1, h2, h3 {
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: #f0ecf8;
-}
+*, body, .stApp { font-family: 'IBM Plex Sans', sans-serif !important; }
+.stApp { background: #1a1625; color: #e8e4f0; }
+.block-container { padding-top: 2.5rem; max-width: 760px; margin: 0 auto; }
+h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; color: #f0ecf8; }
 .sourcebox {
   border: 1px solid rgba(167, 139, 250, 0.15);
   border-radius: 10px;
@@ -45,7 +24,6 @@ h1, h2, h3 {
   color: #c4bdd4;
   max-width: 100%;
   overflow-wrap: break-word;
-  word-wrap: break-word;
   word-break: break-word;
 }
 .stTextInput input, .stChatInput textarea {
@@ -63,9 +41,7 @@ h1, h2, h3 {
   border: 1px solid rgba(167, 139, 250, 0.3) !important;
   color: #c4b5fd !important;
 }
-.stButton button:hover {
-  background: rgba(167, 139, 250, 0.25) !important;
-}
+.stButton button:hover { background: rgba(167, 139, 250, 0.25) !important; }
 .stChatMessage {
   background: rgba(255,255,255,0.03) !important;
   border: 1px solid rgba(167, 139, 250, 0.12) !important;
@@ -73,71 +49,43 @@ h1, h2, h3 {
   max-width: 100% !important;
   overflow: hidden !important;
 }
-.stChatMessage > div {
-  max-width: 100% !important;
-  overflow-wrap: break-word !important;
-  word-wrap: break-word !important;
-  word-break: break-word !important;
-}
+.stChatMessage > div,
 .stChatMessage p,
 .stChatMessage li,
 .stChatMessage span {
   max-width: 100% !important;
   overflow-wrap: break-word !important;
-  word-wrap: break-word !important;
   word-break: break-word !important;
 }
-.stChatMessage pre, 
-.stChatMessage code {
+.stChatMessage pre, .stChatMessage code {
   white-space: pre-wrap !important;
   overflow-x: auto !important;
   max-width: 100% !important;
-  display: block !important;
 }
 .stChatMessage [data-testid="chatAvatarIcon-user"],
 .stChatMessage [data-testid="chatAvatarIcon-assistant"],
-.stChatMessage img,
 [data-testid="stChatMessageAvatarUser"],
-[data-testid="stChatMessageAvatarAssistant"] {
-  display: none !important;
-}
-.stChatInput:focus-within {
-  border-color: rgba(167, 139, 250, 0.4) !important;
-  box-shadow: none !important;
-}
-button[data-testid="stBaseButton-minimal"] { color: #c4b5fd !important; }
+[data-testid="stChatMessageAvatarAssistant"] { display: none !important; }
+.stChatInput:focus-within { border-color: rgba(167, 139, 250, 0.4) !important; box-shadow: none !important; }
 hr { border-color: rgba(167, 139, 250, 0.15); }
-.stChatInput {
-  max-width: 760px !important;
-  margin: 0 auto !important;
-  background: #1a1625 !important;
-}
+.stChatInput { max-width: 760px !important; margin: 0 auto !important; background: #1a1625 !important; }
 .stChatInput > div { background: #1a1625 !important; }
 [data-testid="stBottomBlockContainer"] { background: #1a1625 !important; }
 header[data-testid="stHeader"] { background: #1a1625 !important; }
 footer { display: none !important; }
 section[data-testid="stSidebar"],
 [data-testid="stSidebarCollapsedControl"],
-[data-testid="stSidebarCollapseButton"] {
-  display: none !important;
-  width: 0 !important;
-  visibility: hidden !important;
-}
+[data-testid="stSidebarCollapseButton"] { display: none !important; width: 0 !important; visibility: hidden !important; }
 a { color: #a78bfa !important; }
 a:hover { color: #c4b5fd !important; }
 </style>
-""",
-    unsafe_allow_html=True,
-)
+""", unsafe_allow_html=True)
 
-st.markdown(
-    """
-    <div style="text-align:center;padding:2rem 0 1.5rem 0;">
-      <div style="font-size:56px;font-weight:700;letter-spacing:-0.02em;color:#f0ecf8;font-family:'Orbitron', sans-serif;">Ottobot</div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown("""
+<div style="text-align:center;padding:2rem 0 1.5rem 0;">
+  <div style="font-size:56px;font-weight:700;letter-spacing:-0.02em;color:#f0ecf8;font-family:'Orbitron', sans-serif;">Ottobot</div>
+</div>
+""", unsafe_allow_html=True)
 
 api_key = os.environ.get("OPENAI_API_KEY")
 if not api_key:
@@ -273,9 +221,9 @@ if not st.session_state.get("chat"):
         "Comment configurer un bloc de A à Z ?",
         "Comment créer une fiche contenu/série ?",
     ]
-    for col, question in zip([col1, col2, col3], questions_suggerees):
+    for i, (col, question) in enumerate(zip([col1, col2, col3], questions_suggerees)):
         with col:
-            if st.button(question, use_container_width=True, key=f"btn_{question[:10]}"):
+            if st.button(question, use_container_width=True, key=f"btn_q{i}"):
                 st.session_state["pending_prompt"] = question
                 st.rerun()
 
@@ -330,13 +278,10 @@ if prompt:
             for msg in recent_history:
                 messages.append({"role": msg["role"], "content": msg["content"]})
             messages.append({
-                "role": "user", 
+                "role": "user",
                 "content": f"CONTEXTE (extraits de tutoriels):\n{context}\n\nQUESTION:\n{prompt}"
             })
-            resp = client.chat.completions.create(
-                model="gpt-4o",
-                messages=messages,
-            )
+            resp = client.chat.completions.create(model="gpt-4o", messages=messages)
             answer = resp.choices[0].message.content
         st.session_state["chat"].append({"role": "assistant", "content": answer})
         with st.chat_message("assistant"):

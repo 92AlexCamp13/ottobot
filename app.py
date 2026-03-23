@@ -86,9 +86,14 @@ header[data-testid="stHeader"] {
   background: #2d2d2d !important; 
 }
 
-/* Footer/Chat input - plus foncé */
+/* Footer/Chat input - centré */
 .stChatInput,
-.stChatInput > div,
+.stChatInput > div {
+  background: #1f1f1f !important;
+  max-width: 760px !important;
+  margin: 0 auto !important;
+}
+
 [data-testid="stBottomBlockContainer"],
 .st-emotion-cache-hzygls,
 .st-emotion-cache-6shykm,
@@ -96,6 +101,10 @@ header[data-testid="stHeader"] {
 .eht7o1d7,
 [data-testid="stBottom"] {
   background: #1f1f1f !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 20px 0 !important;
 }
 </style>
 """, unsafe_allow_html=True)

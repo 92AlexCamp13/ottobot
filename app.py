@@ -68,31 +68,34 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; color: #f0ecf8; }
 [data-testid="stChatMessageAvatarAssistant"] { display: none !important; }
 .stChatInput:focus-within { border-color: rgba(167, 139, 250, 0.4) !important; box-shadow: none !important; }
 hr { border-color: rgba(167, 139, 250, 0.15); }
-.stChatInput { max-width: 760px !important; margin: 0 auto !important; background: #1a1625 !important; }
-.stChatInput > div { background: #1a1625 !important; }
-[data-testid="stBottomBlockContainer"] { background: #1a1625 !important; }
-header[data-testid="stHeader"] { background: #1a1625 !important; }
 footer { display: none !important; }
 section[data-testid="stSidebar"],
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="stSidebarCollapseButton"] { display: none !important; width: 0 !important; visibility: hidden !important; }
 a { color: #a78bfa !important; }
 a:hover { color: #c4b5fd !important; }
-[data-testid="stDecoration"],
-[data-testid="stToolbar"],
-[data-testid="stStatusWidget"],
-[data-testid="stAppDeployButton"],
-iframe[height="0"] {
-  display: none !important;
+
+/* Header - plus foncé */
+header[data-testid="stHeader"] { 
+  background: #1f1f1f !important; 
 }
+
+/* Fond principal */
+.stApp { 
+  background: #2d2d2d !important; 
+}
+
+/* Footer/Chat input - plus foncé */
+.stChatInput,
+.stChatInput > div,
+[data-testid="stBottomBlockContainer"],
 .st-emotion-cache-hzygls,
 .st-emotion-cache-6shykm,
 .eht7o1d3,
 .eht7o1d7,
-[data-testid="stBottomBlockContainer"],
 [data-testid="stBottom"] {
-  background: #1a1625 !important;
-}            
+  background: #1f1f1f !important;
+}
 </style>
 """, unsafe_allow_html=True)
 

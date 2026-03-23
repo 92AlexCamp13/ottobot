@@ -38,11 +38,11 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; color: #f0ecf8; }
   font-family: 'IBM Plex Sans', sans-serif !important;
   border-radius: 8px !important;
   font-weight: 500 !important;
-  background: rgba(167, 139, 250, 0.15) !important;
-  border: 1px solid rgba(167, 139, 250, 0.3) !important;
-  color: #c4b5fd !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #e8e4f0 !important;
 }
-.stButton button:hover { background: rgba(167, 139, 250, 0.25) !important; }
+.stButton button:hover { background: rgba(255, 255, 255, 0.2) !important; }
 .stChatMessage {
   background: rgba(255,255,255,0.03) !important;
   border: 1px solid rgba(167, 139, 250, 0.12) !important;

@@ -10,7 +10,7 @@ st.set_page_config(page_title="Ottobot", page_icon="logo_OttoBot.png", layout="c
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Orbitron:wght@900&display=swap');
-body, .stApp, p, span, li, div, button, input, textarea { font-family: 'IBM Plex Sans', sans-serif !important; }
+body, .stApp { font-family: 'IBM Plex Sans', sans-serif; }
 .stApp { background: #1a1625; color: #e8e4f0; }
 .block-container { padding-top: 2.5rem; max-width: 760px; margin: 0 auto; }
 h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; color: #f0ecf8; }
@@ -85,6 +85,14 @@ a:hover { color: #c4b5fd !important; }
 iframe[height="0"] {
   display: none !important;
 }
+.st-emotion-cache-hzygls,
+.st-emotion-cache-6shykm,
+.eht7o1d3,
+.eht7o1d7,
+[data-testid="stBottomBlockContainer"],
+[data-testid="stBottom"] {
+  background: #1a1625 !important;
+}            
 </style>
 """, unsafe_allow_html=True)
 

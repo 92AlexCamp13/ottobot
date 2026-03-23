@@ -90,7 +90,8 @@ header[data-testid="stHeader"] {
 .stChatInput,
 .stChatInput > div {
   background: #1f1f1f !important;
-  max-width: 760px !important;
+  max-width: 100% !important;
+  width: 760px !important;
   margin: 0 auto !important;
 }
 

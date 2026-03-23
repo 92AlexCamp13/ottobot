@@ -10,7 +10,7 @@ st.set_page_config(page_title="Ottobot", page_icon="logo_OttoBot.png", layout="c
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Orbitron:wght@900&display=swap');
-body, .stApp { font-family: 'IBM Plex Sans', sans-serif !important; }
+body, .stApp, p, span, li, div, button, input, textarea { font-family: 'IBM Plex Sans', sans-serif !important; }
 .stApp { background: #1a1625; color: #e8e4f0; }
 .block-container { padding-top: 2.5rem; max-width: 760px; margin: 0 auto; }
 h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; color: #f0ecf8; }

@@ -35,12 +35,6 @@ h1, h2, h3 {
   letter-spacing: -0.02em;
   color: #f0ecf8;
 }
-.kpi {
-  border: 1px solid rgba(167, 139, 250, 0.2);
-  border-radius: 12px;
-  padding: 14px 16px;
-  background: rgba(167, 139, 250, 0.05);
-}
 .sourcebox {
   border: 1px solid rgba(167, 139, 250, 0.15);
   border-radius: 10px;
@@ -54,7 +48,6 @@ h1, h2, h3 {
   word-wrap: break-word;
   word-break: break-word;
 }
-.smallmuted { color: #9b93ab; font-size: 0.9rem; }
 .stTextInput input, .stChatInput textarea {
   font-family: 'IBM Plex Sans', sans-serif !important;
   background: rgba(255,255,255,0.05) !important;
@@ -73,8 +66,6 @@ h1, h2, h3 {
 .stButton button:hover {
   background: rgba(167, 139, 250, 0.25) !important;
 }
-
-/* Chat messages - éviter le débordement */
 .stChatMessage {
   background: rgba(255,255,255,0.03) !important;
   border: 1px solid rgba(167, 139, 250, 0.12) !important;
@@ -103,7 +94,6 @@ h1, h2, h3 {
   max-width: 100% !important;
   display: block !important;
 }
-
 .stChatMessage [data-testid="chatAvatarIcon-user"],
 .stChatMessage [data-testid="chatAvatarIcon-assistant"],
 .stChatMessage img,
@@ -115,7 +105,6 @@ h1, h2, h3 {
   border-color: rgba(167, 139, 250, 0.4) !important;
   box-shadow: none !important;
 }
-
 button[data-testid="stBaseButton-minimal"] { color: #c4b5fd !important; }
 hr { border-color: rgba(167, 139, 250, 0.15); }
 .stChatInput {
@@ -127,18 +116,13 @@ hr { border-color: rgba(167, 139, 250, 0.15); }
 [data-testid="stBottomBlockContainer"] { background: #1a1625 !important; }
 header[data-testid="stHeader"] { background: #1a1625 !important; }
 footer { display: none !important; }
-
-/* Masquer complètement la sidebar */
 section[data-testid="stSidebar"],
-[data-testid="stSidebarContent"],
-[data-testid="stSidebarNav"],
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="stSidebarCollapseButton"] {
   display: none !important;
   width: 0 !important;
   visibility: hidden !important;
 }
-
 a { color: #a78bfa !important; }
 a:hover { color: #c4b5fd !important; }
 </style>
@@ -155,9 +139,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ----------------------------
-# OpenAI
-# ----------------------------
 api_key = os.environ.get("OPENAI_API_KEY")
 if not api_key:
     st.error("OPENAI_API_KEY introuvable.")
@@ -165,9 +146,6 @@ if not api_key:
 
 client = OpenAI(api_key=api_key)
 
-# ----------------------------
-# Chroma
-# ----------------------------
 PROJECT_DIR = os.path.dirname(__file__)
 CHROMA_PATH = os.path.join(PROJECT_DIR, "chroma_db")
 COLLECTION_NAME = "kbase"
@@ -190,32 +168,23 @@ def collection_has_data(col) -> bool:
     except Exception:
         return False
 
-# ----------------------------
-# Helpers
-# ----------------------------
 def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 150) -> list[str]:
     if overlap >= chunk_size:
         raise ValueError("overlap doit être inférieur à chunk_size")
-    
     text = " ".join(text.split()).strip()
     if not text:
         return []
-    
     if len(text) <= chunk_size:
         return [text]
-    
     chunks = []
     start = 0
     step = chunk_size - overlap
-    
     while start < len(text):
         end = start + chunk_size
         chunks.append(text[start:end])
         start += step
-        
         if start + overlap >= len(text):
             break
-    
     return chunks
 
 @st.cache_data(show_spinner=False)
@@ -230,9 +199,6 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
     resp = client.embeddings.create(model="text-embedding-3-small", input=cleaned)
     return [x.embedding for x in resp.data]
 
-# ----------------------------
-# Config Admin (sans sidebar)
-# ----------------------------
 admin_token = os.environ.get("OTTOBOT_ADMIN_TOKEN", "")
 is_admin_url = st.query_params.get("admin", "") == "true"
 
@@ -245,22 +211,13 @@ else:
     is_admin = False
 
 top_k = 3
-
-# ----------------------------
-# Chroma collection
-# ----------------------------
 collection = get_collection()
 
-# ----------------------------
-# Espace Admin
-# ----------------------------
 if is_admin:
     st.divider()
     st.subheader("Espace Admin")
-
     if collection_has_data(collection):
         st.markdown(f"**Chunks indexés :** {collection.count()}")
-
         results = collection.get(include=["metadatas"])
         sources = {}
         for meta in results["metadatas"]:
@@ -268,23 +225,16 @@ if is_admin:
             url = meta.get("url", "")
             if title not in sources:
                 sources[title] = url
-
         st.markdown(f"**Tutoriels indexés ({len(sources)}) :**")
         tutos_html = "".join([
-            f"<div class='sourcebox'>"
-            f"<a href='{url}' target='_blank'>{title}</a>"
-            f"</div>"
-            if url else
-            f"<div class='sourcebox'>{title}</div>"
+            f"<div class='sourcebox'><a href='{url}' target='_blank'>{title}</a></div>"
+            if url else f"<div class='sourcebox'>{title}</div>"
             for title, url in sorted(sources.items())
         ])
         st.markdown(tutos_html, unsafe_allow_html=True)
-
     else:
         st.warning("Base vide. Lancez scraper.py pour indexer les tutoriels.")
-
     st.divider()
-
     st.markdown("**Tester une recherche dans la base**")
     test_query = st.text_input("Entrez un mot-clé ou une question...")
     if test_query and collection_has_data(collection):
@@ -298,24 +248,18 @@ if is_admin:
             url = meta.get("url", "")
             st.markdown(
                 f"<div class='sourcebox'><b>Extrait {i} — {src}</b>"
-                f"{'<br/><a href=' + url + ' target=_blank>Voir le tutoriel</a>' if url else ''}"
+                f"{'<br/><a href=' + url + ' target=_blank>Voir</a>' if url else ''}"
                 f"<br/><small>{doc[:200]}...</small></div>",
                 unsafe_allow_html=True,
             )
-
     st.divider()
-
     st.markdown("**Zone dangereuse**")
     if st.button("Vider et réinitialiser la base", type="secondary"):
         clear_collection()
         collection = get_collection()
         st.warning("Base vidée. Relancez scraper.py pour réindexer.")
-
     st.divider()
 
-# ----------------------------
-# Accroche + questions suggérées
-# ----------------------------
 st.markdown(
     "<p style='text-align:center;color:#9b93ab;font-size:14px;'>"
     "Une question sur Otto ? Obtenez la réponse en 2 clics</p>",
@@ -337,9 +281,6 @@ if not st.session_state.get("chat"):
 
 st.divider()
 
-# ----------------------------
-# Chat
-# ----------------------------
 if "chat" not in st.session_state:
     st.session_state["chat"] = []
 
@@ -360,7 +301,6 @@ if prompt:
     st.session_state["chat"].append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
-
     collection = get_collection()
     if not collection_has_data(collection):
         with st.chat_message("assistant"):
@@ -371,9 +311,7 @@ if prompt:
             results = collection.query(query_embeddings=[q_emb], n_results=top_k)
             contexts = results.get("documents", [[]])[0]
             metadatas = results.get("metadatas", [[]])[0]
-
         context = "\n\n---\n\n".join(contexts)
-
         system = (
             "Tu es Ottobot, l'assistant intelligent d'Otto Academy by VodFactory. "
             "Tu aides les utilisateurs à comprendre et utiliser la plateforme Otto. "
@@ -386,28 +324,20 @@ if prompt:
             "N'hésitez pas à contacter le support VodFactory.' "
             "Réponds toujours en français, sans emojis, de façon concise et utile."
         )
-
         with st.spinner("Génération de la réponse..."):
-            # Construire l'historique des messages pour le LLM
             messages = [{"role": "system", "content": system}]
-            
-            # Ajouter les 6 derniers messages (3 échanges question/réponse)
             recent_history = st.session_state["chat"][-6:]
             for msg in recent_history:
                 messages.append({"role": msg["role"], "content": msg["content"]})
-            
-            # Ajouter la question actuelle avec le contexte RAG
             messages.append({
                 "role": "user", 
                 "content": f"CONTEXTE (extraits de tutoriels):\n{context}\n\nQUESTION:\n{prompt}"
             })
-            
             resp = client.chat.completions.create(
                 model="gpt-4o",
                 messages=messages,
             )
             answer = resp.choices[0].message.content
-
         st.session_state["chat"].append({"role": "assistant", "content": answer})
         with st.chat_message("assistant"):
             st.markdown(answer)

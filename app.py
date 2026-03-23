@@ -29,9 +29,10 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; color: #f0ecf8; }
 .stTextInput input, .stChatInput textarea {
   font-family: 'IBM Plex Sans', sans-serif !important;
   background: rgba(255,255,255,0.05) !important;
-  border: 1px solid rgba(167, 139, 250, 0.25) !important;
-  border-radius: 10px !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 20px !important;
   color: #e8e4f0 !important;
+  min-height: 50px !important;
 }
 .stButton button {
   font-family: 'IBM Plex Sans', sans-serif !important;
@@ -235,9 +236,9 @@ st.markdown(
 if not st.session_state.get("chat"):
     col1, col2, col3 = st.columns(3)
     questions_suggerees = [
-        "Comment créer ma clé SSH ?",
+        "Comment générer ma clé SSH ?",
         "Comment configurer un bloc de A à Z ?",
-        "Comment créer une fiche contenu/série ?",
+        "Comment créer une fiche contenu ?",
     ]
     for i, (col, question) in enumerate(zip([col1, col2, col3], questions_suggerees)):
         with col:

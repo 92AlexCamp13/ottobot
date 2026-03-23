@@ -78,12 +78,11 @@ section[data-testid="stSidebar"],
 [data-testid="stSidebarCollapseButton"] { display: none !important; width: 0 !important; visibility: hidden !important; }
 a { color: #a78bfa !important; }
 a:hover { color: #c4b5fd !important; }
-[data-testid="stDecoration"],
-[data-testid="stToolbar"],
-[data-testid="stStatusWidget"],
-[data-testid="stAppDeployButton"],
-iframe[height="0"] {
-  display: none !important;
+.st-emotion-cache-hzygls,
+.st-emotion-cache-6shykm,
+.eht7o1d3,
+.eht7o1d7 {
+  background: #1a1625 !important;
 }
 </style>
 """, unsafe_allow_html=True)

@@ -11,7 +11,7 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Orbitron:wght@900&display=swap');
 body, .stApp { font-family: 'IBM Plex Sans', sans-serif; }
-.stApp { background: #1a1625; color: #e8e4f0; }
+.stApp { background: #2d2d2d; color: #e8e4f0; }
 .block-container { padding-top: 2.5rem; max-width: 760px; margin: 0 auto; }
 h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; color: #f0ecf8; }
 .sourcebox {

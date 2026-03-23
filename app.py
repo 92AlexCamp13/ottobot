@@ -8,7 +8,7 @@ import chromadb
 # ----------------------------
 # Page config + style
 # ----------------------------
-st.set_page_config(page_title="Ottobot", page_icon="logo_OttoBot.png", layout="centered", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Ottobot", page_icon="logo_OttoBot.png", layout="centered")
 
 st.markdown(
     """
@@ -116,22 +116,6 @@ h1, h2, h3 {
   box-shadow: none !important;
 }
 
-/* Masquer TOUTES les icônes Material buguées */
-[data-testid="stIconMaterial"],
-span[data-testid="stIconMaterial"],
-span[translate="no"],
-.st-emotion-cache-1c9yjad,
-.exvv1vr0 {
-  display: none !important;
-  visibility: hidden !important;
-  font-size: 0 !important;
-  width: 0 !important;
-  height: 0 !important;
-  position: absolute !important;
-  left: -9999px !important;
-  clip: rect(0,0,0,0) !important;
-}
-
 button[data-testid="stBaseButton-minimal"] { color: #c4b5fd !important; }
 hr { border-color: rgba(167, 139, 250, 0.15); }
 .stChatInput {
@@ -146,6 +130,8 @@ footer { display: none !important; }
 
 /* Masquer complètement la sidebar */
 section[data-testid="stSidebar"],
+[data-testid="stSidebarContent"],
+[data-testid="stSidebarNav"],
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="stSidebarCollapseButton"] {
   display: none !important;
@@ -155,24 +141,6 @@ section[data-testid="stSidebar"],
 
 a { color: #a78bfa !important; }
 a:hover { color: #c4b5fd !important; }
-/* Forcer suppression sidebar */
-[data-testid="stSidebar"],
-[data-testid="stSidebarContent"],
-[data-testid="stSidebarNav"],
-[data-testid="stSidebarCollapsedControl"],
-[data-testid="stSidebarCollapseButton"],
-.st-emotion-cache-1gwvy71,
-.st-emotion-cache-uf99v8 {
-  display: none !important;
-  width: 0 !important;
-  min-width: 0 !important;
-  max-width: 0 !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  position: absolute !important;
-  left: -9999px !important;
-}
 </style>
 """,
     unsafe_allow_html=True,
@@ -263,7 +231,7 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
     return [x.embedding for x in resp.data]
 
 # ----------------------------
-# Config (sans sidebar)
+# Config Admin (sans sidebar)
 # ----------------------------
 admin_token = os.environ.get("OTTOBOT_ADMIN_TOKEN", "")
 is_admin_url = st.query_params.get("admin", "") == "true"
@@ -283,12 +251,11 @@ top_k = 3
 # ----------------------------
 collection = get_collection()
 
-st.divider()
-
 # ----------------------------
 # Espace Admin
 # ----------------------------
 if is_admin:
+    st.divider()
     st.subheader("Espace Admin")
 
     if collection_has_data(collection):
@@ -444,6 +411,3 @@ if prompt:
         st.session_state["chat"].append({"role": "assistant", "content": answer})
         with st.chat_message("assistant"):
             st.markdown(answer)
-
-            # Sources désactivées (bug icône Streamlit)
-            pass

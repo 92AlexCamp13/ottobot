@@ -20,7 +20,8 @@ body, .stApp {
   color: #1a1a2e; 
 }
 .block-container { 
-  padding-top: 2.5rem; 
+  padding-top: 2rem; 
+  padding-bottom: 0rem;
   max-width: 760px; 
   margin: 0 auto; 
 }
@@ -51,7 +52,7 @@ h1, h2, h3 {
 }
 
 /* Inputs */
-.stTextInput input, .stChatInput textarea {
+.stTextInput input {
   font-family: 'Inter', sans-serif !important;
   background: #ffffff !important;
   border: 2px solid #e5e7eb !important;
@@ -59,9 +60,38 @@ h1, h2, h3 {
   color: #1a1a2e !important;
   min-height: 50px !important;
 }
-.stTextInput input:focus, .stChatInput textarea:focus {
+.stTextInput input:focus {
   border-color: #6366f1 !important;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Chat Input - zone de saisie en bas */
+[data-testid="stChatInput"] {
+  background: #ffffff !important;
+}
+[data-testid="stChatInput"] textarea {
+  font-family: 'Inter', sans-serif !important;
+  background: #f9fafb !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  color: #1a1a2e !important;
+  min-height: 50px !important;
+}
+[data-testid="stChatInput"] textarea::placeholder {
+  color: #9ca3af !important;
+  opacity: 1 !important;
+}
+[data-testid="stChatInput"] textarea:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+[data-testid="stChatInput"] button {
+  background: #6366f1 !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+}
+[data-testid="stChatInput"] button:hover {
+  background: #4f46e5 !important;
 }
 
 /* Boutons */
@@ -72,7 +102,7 @@ h1, h2, h3 {
   background: #6366f1 !important;
   border: none !important;
   color: #ffffff !important;
-  padding: 0.5rem 1rem !important;
+  padding: 0.6rem 1rem !important;
   transition: all 0.2s ease !important;
 }
 .stButton button:hover { 
@@ -116,15 +146,11 @@ h1, h2, h3 {
   display: none !important; 
 }
 
-/* Input du chat focus */
-.stChatInput:focus-within { 
-  border-color: #6366f1 !important; 
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important; 
-}
-
 /* Séparateurs */
 hr { 
-  border-color: #e5e7eb; 
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 1.5rem 0;
 }
 
 /* Footer et sidebar cachés */
@@ -153,29 +179,12 @@ header[data-testid="stHeader"] {
   border-bottom: 1px solid #e5e7eb !important;
 }
 
-/* Footer/Chat input */
-.stChatInput,
-.stChatInput > div {
-  background: #ffffff !important;
-  max-width: 100% !important;
-  width: 760px !important;
-  margin: 0 auto !important;
-}
-
+/* Footer/Chat input container */
 [data-testid="stBottomBlockContainer"],
-.st-emotion-cache-hzygls,
-.st-emotion-cache-6shykm,
-.eht7o1d3,
-.eht7o1d7,
 [data-testid="stBottom"] {
   background: #ffffff !important;
   border-top: 1px solid #e5e7eb !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  padding: 12px 0 !important;
-  min-height: auto !important;
-  max-height: 80px !important;
+  padding: 12px 16px !important;
 }
 
 /* Spinner/Loading */
@@ -188,16 +197,21 @@ header[data-testid="stHeader"] {
   border-radius: 12px !important;
   border: none !important;
 }
+
+/* Réduire l'espacement vertical */
+.element-container {
+  margin-bottom: 0.5rem !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# Header avec logo Otto Academy
+# Header avec le VRAI logo Otto Academy
 st.markdown("""
-<div style="text-align:center;padding:2rem 0 1.5rem 0;">
-  <img src="https://cdn.prod.website-files.com/5d1b4c09d7f0159a77c39cb1/63612273c638609bffb6246c_otto-academy_logo.png" 
+<div style="text-align:center;padding:1.5rem 0 1rem 0;">
+  <img src="https://cdn.prod.website-files.com/5d1b4c09d7f0159a77c39cb1/60802efcd14f59369ce67f72_logo_ottoacademy.png" 
        alt="Otto Academy" 
-       style="height:60px;margin-bottom:0.5rem;">
-  <div style="font-size:32px;font-weight:700;letter-spacing:-0.02em;color:#1a1a2e;margin-top:0.5rem;">
+       style="height:70px;margin-bottom:0.5rem;">
+  <div style="font-size:28px;font-weight:700;letter-spacing:-0.02em;color:#1a1a2e;margin-top:0.5rem;">
     Ottobot
   </div>
   <p style="color:#6b7280;font-size:14px;margin-top:0.25rem;">
@@ -328,7 +342,7 @@ if is_admin:
     st.divider()
 
 st.markdown(
-    "<p style='text-align:center;color:#6b7280;font-size:14px;'>"
+    "<p style='text-align:center;color:#6b7280;font-size:14px;margin-bottom:0.5rem;'>"
     "Une question sur Otto ? Obtenez la réponse en 2 clics</p>",
     unsafe_allow_html=True,
 )
@@ -346,7 +360,7 @@ if not st.session_state.get("chat"):
                 st.session_state["pending_prompt"] = question
                 st.rerun()
 
-st.divider()
+st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
 if "chat" not in st.session_state:
     st.session_state["chat"] = []

@@ -9,46 +9,86 @@ st.set_page_config(page_title="Ottobot", page_icon="logo_OttoBot.png", layout="c
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Orbitron:wght@900&display=swap');
-body, .stApp { font-family: 'IBM Plex Sans', sans-serif; }
-.stApp { background: #2d2d2d; color: #e8e4f0; }
-.block-container { padding-top: 2.5rem; max-width: 760px; margin: 0 auto; }
-h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; color: #f0ecf8; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Base */
+body, .stApp { 
+  font-family: 'Inter', sans-serif; 
+}
+.stApp { 
+  background: #FFFFFF; 
+  color: #1a1a2e; 
+}
+.block-container { 
+  padding-top: 2.5rem; 
+  max-width: 760px; 
+  margin: 0 auto; 
+}
+
+/* Titres */
+h1, h2, h3 { 
+  font-weight: 600; 
+  letter-spacing: -0.02em; 
+  color: #1a1a2e; 
+}
+
+/* Box des sources */
 .sourcebox {
-  border: 1px solid rgba(167, 139, 250, 0.15);
-  border-radius: 10px;
-  padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: #f9fafb;
   margin-bottom: 10px;
   font-size: 0.92rem;
-  color: #c4bdd4;
+  color: #4b5563;
   max-width: 100%;
   overflow-wrap: break-word;
   word-break: break-word;
+  transition: border-color 0.2s ease;
 }
+.sourcebox:hover {
+  border-color: #6366f1;
+}
+
+/* Inputs */
 .stTextInput input, .stChatInput textarea {
-  font-family: 'IBM Plex Sans', sans-serif !important;
-  background: rgba(255,255,255,0.05) !important;
-  border: 2px solid rgba(255, 255, 255, 0.3) !important;
-  border-radius: 20px !important;
-  color: #e8e4f0 !important;
+  font-family: 'Inter', sans-serif !important;
+  background: #ffffff !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  color: #1a1a2e !important;
   min-height: 50px !important;
 }
-.stButton button {
-  font-family: 'IBM Plex Sans', sans-serif !important;
-  border-radius: 8px !important;
-  font-weight: 500 !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  color: #e8e4f0 !important;
+.stTextInput input:focus, .stChatInput textarea:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
 }
-.stButton button:hover { background: rgba(255, 255, 255, 0.2) !important; }
+
+/* Boutons */
+.stButton button {
+  font-family: 'Inter', sans-serif !important;
+  border-radius: 10px !important;
+  font-weight: 500 !important;
+  background: #6366f1 !important;
+  border: none !important;
+  color: #ffffff !important;
+  padding: 0.5rem 1rem !important;
+  transition: all 0.2s ease !important;
+}
+.stButton button:hover { 
+  background: #4f46e5 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+}
+
+/* Messages du chat */
 .stChatMessage {
-  background: rgba(255,255,255,0.03) !important;
-  border: 1px solid rgba(167, 139, 250, 0.12) !important;
-  border-radius: 12px !important;
+  background: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 16px !important;
   max-width: 100% !important;
   overflow: hidden !important;
+  margin-bottom: 1rem !important;
 }
 .stChatMessage > div,
 .stChatMessage p,
@@ -57,39 +97,66 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; color: #f0ecf8; }
   max-width: 100% !important;
   overflow-wrap: break-word !important;
   word-break: break-word !important;
+  color: #374151 !important;
 }
 .stChatMessage pre, .stChatMessage code {
   white-space: pre-wrap !important;
   overflow-x: auto !important;
   max-width: 100% !important;
+  background: #1a1a2e !important;
+  color: #e5e7eb !important;
+  border-radius: 8px !important;
 }
+
+/* Cacher les avatars */
 .stChatMessage [data-testid="chatAvatarIcon-user"],
 .stChatMessage [data-testid="chatAvatarIcon-assistant"],
 [data-testid="stChatMessageAvatarUser"],
-[data-testid="stChatMessageAvatarAssistant"] { display: none !important; }
-.stChatInput:focus-within { border-color: rgba(167, 139, 250, 0.4) !important; box-shadow: none !important; }
-hr { border-color: rgba(167, 139, 250, 0.15); }
+[data-testid="stChatMessageAvatarAssistant"] { 
+  display: none !important; 
+}
+
+/* Input du chat focus */
+.stChatInput:focus-within { 
+  border-color: #6366f1 !important; 
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important; 
+}
+
+/* Séparateurs */
+hr { 
+  border-color: #e5e7eb; 
+}
+
+/* Footer et sidebar cachés */
 footer { display: none !important; }
 section[data-testid="stSidebar"],
 [data-testid="stSidebarCollapsedControl"],
-[data-testid="stSidebarCollapseButton"] { display: none !important; width: 0 !important; visibility: hidden !important; }
-a { color: #a78bfa !important; }
-a:hover { color: #c4b5fd !important; }
+[data-testid="stSidebarCollapseButton"] { 
+  display: none !important; 
+  width: 0 !important; 
+  visibility: hidden !important; 
+}
 
-/* Header - plus foncé */
+/* Liens */
+a { 
+  color: #6366f1 !important; 
+  text-decoration: none !important;
+}
+a:hover { 
+  color: #4f46e5 !important; 
+  text-decoration: underline !important;
+}
+
+/* Header */
 header[data-testid="stHeader"] { 
-  background: #1f1f1f !important; 
+  background: #ffffff !important;
+  border-bottom: 1px solid #e5e7eb !important;
 }
 
-/* Fond principal */
-.stApp { 
-  background: #2d2d2d !important; 
-}
-
-/* Footer/Chat input - centré */
+/* Footer/Chat input */
 .stChatInput,
 .stChatInput > div {
-  background: #1f1f1f !important;
+  background: #ffffff !important;
   max-width: 100% !important;
   width: 760px !important;
   margin: 0 auto !important;
@@ -101,20 +168,41 @@ header[data-testid="stHeader"] {
 .eht7o1d3,
 .eht7o1d7,
 [data-testid="stBottom"] {
-  background: #1f1f1f !important;
+  background: #ffffff !important;
+  border-top: 1px solid #e5e7eb !important;
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
-  padding: 8px 0 !important;
+  padding: 12px 0 !important;
   min-height: auto !important;
-  max-height: 70px !important;
+  max-height: 80px !important;
+}
+
+/* Spinner/Loading */
+.stSpinner > div {
+  border-top-color: #6366f1 !important;
+}
+
+/* Warnings et alertes */
+.stAlert {
+  border-radius: 12px !important;
+  border: none !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
+# Header avec logo Otto Academy
 st.markdown("""
 <div style="text-align:center;padding:2rem 0 1.5rem 0;">
-  <div style="font-size:56px;font-weight:700;letter-spacing:-0.02em;color:#f0ecf8;font-family:'Orbitron', sans-serif;">Ottobot</div>
+  <img src="https://cdn.prod.website-files.com/5d1b4c09d7f0159a77c39cb1/63612273c638609bffb6246c_otto-academy_logo.png" 
+       alt="Otto Academy" 
+       style="height:60px;margin-bottom:0.5rem;">
+  <div style="font-size:32px;font-weight:700;letter-spacing:-0.02em;color:#1a1a2e;margin-top:0.5rem;">
+    Ottobot
+  </div>
+  <p style="color:#6b7280;font-size:14px;margin-top:0.25rem;">
+    Votre assistant intelligent Otto Academy
+  </p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -240,7 +328,7 @@ if is_admin:
     st.divider()
 
 st.markdown(
-    "<p style='text-align:center;color:#9b93ab;font-size:14px;'>"
+    "<p style='text-align:center;color:#6b7280;font-size:14px;'>"
     "Une question sur Otto ? Obtenez la réponse en 2 clics</p>",
     unsafe_allow_html=True,
 )

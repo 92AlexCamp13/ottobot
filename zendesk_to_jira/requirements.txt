@@ -1,0 +1,3 @@
+# Dependances minimales (brief §4) : on evite les SDK lourds tant qu'on apprend.
+requests        # appels HTTP aux API REST Zendesk et Jira
+python-dotenv   # lecture des secrets depuis le fichier .env

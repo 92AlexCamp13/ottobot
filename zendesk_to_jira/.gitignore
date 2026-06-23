@@ -1,0 +1,13 @@
+# Secrets : ne JAMAIS committer le .env (règle non négociable du brief §3.1).
+# Seul .env.example, qui ne contient que des placeholders, est versionné.
+.env
+
+# Environnement virtuel Python (lourd, reconstructible avec requirements.txt).
+.venv/
+
+# Fichiers compilés Python.
+__pycache__/
+*.pyc
+
+# Journal des conversions (donnees d'execution, pas du code).
+conversions.csv

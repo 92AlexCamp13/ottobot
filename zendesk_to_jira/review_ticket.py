@@ -68,33 +68,37 @@ def choisir_plateforme(options: list) -> dict:
 # ============================================================================
 
 def revue_interactive(ticket: dict, infos: dict, match, options: list) -> dict:
-    """Pose les questions manquantes et assemble le 'fields' Jira complet."""
+    """Pose les questions de qualification au CLAVIER, puis delegue l'assemblage.
 
-    # --- 1. Resume (nomenclature) ------------------------------------------
+    Depuis le refactoring (brief §4), cette fonction ne fait plus QUE collecter
+    les choix de l'utilisateur dans un dict 'choix'. L'assemblage du 'fields'
+    Jira, lui, est fait par noyau.construire_fields (fonction pure), partagee
+    avec la future interface web. Le comportement au terminal est inchange.
+    """
+    choix = {}
+
+    # --- 1. Resume (nomenclature) : les questions dependent du type --------
     if infos["type"] in ("App Mobile", "App TV"):
-        systeme = demander_choix("Systeme concerne ?", ["Android", "iOS"])
-        resume = infos["gabarit_resume"].format(os=systeme, titre=ticket["subject"])
+        choix["systeme"] = demander_choix("Systeme concerne ?", ["Android", "iOS"])
     else:  # Web
-        onglet = demander_texte("Onglet du BO concerne (ex. Catalogue)")
-        bofo = demander_choix("Back-office ou Front-office ?", ["BO", "FO"])
-        resume = infos["gabarit_resume"].format(onglet=onglet, bofo=bofo, titre=ticket["subject"])
+        choix["onglet"] = demander_texte("Onglet du BO concerne (ex. Catalogue)")
+        choix["bofo"] = demander_choix("Back-office ou Front-office ?", ["BO", "FO"])
 
-    # --- 2. Priorite + echeance derivee ------------------------------------
-    nom_prio = demander_choix("Priorite ?", list(noyau.PRIORITES))
-    echeance = noyau.calculer_echeance(nom_prio)
+    # --- 2. Priorite -------------------------------------------------------
+    choix["nom_prio"] = demander_choix("Priorite ?", list(noyau.PRIORITES))
 
     # --- 3. Assigne (confirmer la suggestion ou basculer) ------------------
     print(f"\n  Assigne suggere (via tags) : {infos['assigne_label']}")
     if demander_choix("On garde cet assigne ?", ["Oui", "Non, choisir l'autre"]) == "Oui":
-        assigne_id, assigne_label = infos["assigne_id"], infos["assigne_label"]
+        choix["assigne_id"], choix["assigne_label"] = infos["assigne_id"], infos["assigne_label"]
     else:
         # Bascule vers l'autre destinataire connu.
         if infos["assigne_label"] == "Tech VODF":
-            assigne_id = noyau.get_required("JIRA_ASSIGNEE_SOUFIANE")
-            assigne_label = "EL AMRANI Soufiane"
+            choix["assigne_id"] = noyau.get_required("JIRA_ASSIGNEE_SOUFIANE")
+            choix["assigne_label"] = "EL AMRANI Soufiane"
         else:
-            assigne_id = noyau.get_required("JIRA_ASSIGNEE_TECH_VODF")
-            assigne_label = "Tech VODF"
+            choix["assigne_id"] = noyau.get_required("JIRA_ASSIGNEE_TECH_VODF")
+            choix["assigne_label"] = "Tech VODF"
 
     # --- 4. Plateforme (confirmer le match ou choisir) ---------------------
     if match:
@@ -104,29 +108,8 @@ def revue_interactive(ticket: dict, infos: dict, match, options: list) -> dict:
     else:
         match = choisir_plateforme(options)
 
-    # --- 5. Description -> ADF ---------------------------------------------
-    zd_base = noyau.session_zendesk()[1]
-    url_source = noyau.url_ticket_zendesk(zd_base, ticket["id"])
-    description_adf = noyau.texte_vers_adf(ticket["description"], url_source)
-
-    # --- 6. Assemblage du "fields" Jira ------------------------------------
-    # C'est exactement la structure que l'API Jira attend dans {"fields": {...}}.
-    # NB : on NE met PAS de champ "reporter". Du coup Jira affecte le rapporteur
-    # (= demandeur) au compte authentifie, c'est-a-dire TOI. Le demandeur Zendesk
-    # d'origine n'est donc jamais utilise comme demandeur Jira.
-    fields = {
-        "project": {"key": noyau.get_required("JIRA_PROJECT_KEY")},
-        "issuetype": {"id": noyau.ISSUE_TYPE_BUG_ID},
-        "summary": resume,
-        "description": description_adf,
-        "priority": {"id": noyau.PRIORITES[nom_prio]},
-        "duedate": echeance,
-        "assignee": {"accountId": assigne_id},
-        noyau.get_required("JIRA_PLATFORM_FIELD_ID"): [{"id": match["id"]}],
-    }
-    # On garde quelques libelles lisibles a part, juste pour l'affichage du recap.
-    meta_affichage = {"priorite": nom_prio, "assigne": assigne_label, "plateforme": match["label"]}
-    return fields, meta_affichage
+    # --- 5. Assemblage delegue au moteur (fonction pure, partagee web) -----
+    return noyau.construire_fields(ticket, infos, match, choix)
 
 
 def afficher_recap(fields: dict, meta: dict) -> None:
@@ -195,4 +178,9 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    # Message propre (pas de trace brute) sur erreur previsible du moteur.
+    try:
+        main()
+    except noyau.ErreurOutil as erreur:
+        print(f"  [X] {erreur}")
+        sys.exit(1)

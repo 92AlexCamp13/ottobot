@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  com.vodfactory.zendesk-jira.plist — Service launchd (macOS) pour faire tourner
+  l'outil Zendesk -> Jira en permanence sur le Mac mini.
+
+  RunAtLoad = demarre au boot ; KeepAlive = redemarre si l'app plante.
+
+  INSTALLATION (sur le Mac mini, une fois) :
+    1. Remplacer __CHEMIN__ par le chemin ABSOLU du dossier zendesk_to_jira
+       (ex. /Users/vodf/Documents/OttoBot/zendesk_to_jira) et __USER__ par le
+       nom du compte macOS qui execute le service.
+    2. Copier ce fichier dans ~/Library/LaunchAgents/ (service de session) :
+         cp com.vodfactory.zendesk-jira.plist ~/Library/LaunchAgents/
+    3. Charger le service :
+         launchctl load ~/Library/LaunchAgents/com.vodfactory.zendesk-jira.plist
+       (pour recharger apres modif : launchctl unload ... puis load ...)
+    4. Verifier :  launchctl list | grep zendesk-jira   et les logs ci-dessous.
+
+  NB : APP_ENV=prod active les cookies "secure" (HTTPS via Tailscale obligatoire).
+  Les autres secrets sont lus depuis le .env du dossier (WorkingDirectory).
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.vodfactory.zendesk-jira</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>__CHEMIN__/demarrer_serveur.sh</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>__CHEMIN__</string>
+
+    <!-- HTTPS assure par Tailscale -> on active les cookies securises. -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>APP_ENV</key>
+        <string>prod</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>__CHEMIN__/logs/serveur.log</string>
+    <key>StandardErrorPath</key>
+    <string>__CHEMIN__/logs/serveur.err.log</string>
+</dict>
+</plist>

@@ -1,0 +1,152 @@
+{# ===========================================================================
+   ticket.html — Page d'un ticket (route GET /ticket/{id}).
+
+   Deux cas :
+     - deja_converti = True  -> on AFFICHE un blocage (pas de formulaire),
+       avec un lien vers le Jira existant (garde-fou anti-doublon, brief §3).
+     - sinon                 -> lecture du ticket + formulaire de qualification.
+
+   Le serveur a deja decide quels champs montrer (selon infos.type) : pour les
+   apps, le champ "Systeme" ; pour le web, "Onglet" + "BO/FO". Zero JavaScript.
+=========================================================================== #}
+{% extends "base.html" %}
+{% from "base.html" import icon %}
+
+{% block titre %}ZD-{{ ticket.id }} — zendesk → jira{% endblock %}
+{% block nav_actif %}liste{% endblock %}
+{% block nav_titre %}Traitement d'un ticket{% endblock %}
+
+{% block contenu %}
+
+{% if deja_converti %}
+  {# ---- Cas bloque : ticket deja converti ---- #}
+  <div class="page-tete">
+    <h2 class="page-titre">{{ ticket.subject }}</h2>
+    <div class="page-sous">
+      <span class="mono"><span class="t-ambre">ZD-{{ ticket.id }}</span>
+        <span class="fleche">→</span> jira</span>
+    </div>
+  </div>
+  <div class="statut bloque">
+    <div class="entete-statut">{{ icon('alerte') }} Conversion bloquée</div>
+    <p>Ce ticket porte déjà la clé Jira
+       <strong class="mono">{{ ticket.cle_jira_existante }}</strong>.
+       Pour éviter un doublon, sa conversion est bloquée.</p>
+    <p><a href="{{ lien_jira }}" target="_blank">{{ icon('lien', 16) }} Ouvrir {{ ticket.cle_jira_existante }} dans Jira</a></p>
+  </div>
+  <a class="retour" href="/">{{ icon('retour', 16) }} Retour à la liste</a>
+
+{% else %}
+  {# ---- Cas normal : lecture + formulaire ---- #}
+  <div class="page-tete">
+    <h2 class="page-titre">{{ ticket.subject }}</h2>
+    <div class="page-sous">
+      <span class="mono"><a href="{{ lien_zendesk }}" target="_blank" class="t-ambre">ZD-{{ ticket.id }}</a>
+        <span class="fleche">→</span> jira</span>
+      <span class="t-attenue">·</span>
+      <span>type détecté : <strong>{{ infos.type }}</strong></span>
+    </div>
+  </div>
+
+  {# --- Partie LECTURE SEULE (pour relire avant de valider) --- #}
+  <div class="lecture">
+    <p class="meta">Signalé par : {{ ticket.demandeur }}</p>
+    <p class="meta pj">
+      {% if pieces %}{{ pieces | length }} pièce(s) jointe(s) :
+        {{ pieces | map(attribute='file_name') | join(', ') }}
+        <br>(transférées automatiquement vers Jira à la création)
+      {% else %}Aucune pièce jointe.{% endif %}
+    </p>
+    <div class="desc">{{ ticket.description }}</div>
+  </div>
+
+  {# --- Le FORMULAIRE de qualification ---
+       method=post : on ENVOIE des donnees (≠ GET qui sert a voir une page).
+       action : la route de creation (etape 5). Les "name" des champs
+       correspondent exactement au dict 'choix' attendu par noyau.construire_fields. #}
+  <h2>Qualification</h2>
+  <form action="/ticket/{{ ticket.id }}/creer" method="post">
+
+    {# Description reformulee par l'IA en rapport de bug, EDITABLE avant creation.
+       C'est ce texte (eventuellement corrige) qui partira dans Jira. #}
+    <div class="champ">
+      <label for="description">Description pour la tech (reformulée par l'IA — relis/corrige)</label>
+      {% if not reformulation_ok %}
+        <p class="meta">{{ icon('alerte', 15) }} Reformulation indisponible : texte brut du ticket affiché. Tu peux l'éditer.</p>
+      {% endif %}
+      <textarea id="description" name="description" rows="16">{{ description_draft }}</textarea>
+    </div>
+
+    {% if infos.type in ["App Mobile", "App TV"] %}
+      {# Champ specifique aux apps : Systeme #}
+      <div class="champ">
+        <label for="systeme">Système concerné</label>
+        <select id="systeme" name="systeme" required>
+          <option value="Android">Android</option>
+          <option value="iOS">iOS</option>
+        </select>
+      </div>
+    {% else %}
+      {# Champs specifiques au web : Onglet + BO/FO #}
+      <div class="champ">
+        <label for="onglet">Onglet du BO concerné (ex. Catalogue)</label>
+        <input type="text" id="onglet" name="onglet" placeholder="ex. Catalogue" required>
+      </div>
+      <div class="champ">
+        <label for="bofo">Back-office ou Front-office ?</label>
+        <select id="bofo" name="bofo" required>
+          <option value="BO">BO</option>
+          <option value="FO">FO</option>
+        </select>
+      </div>
+    {% endif %}
+
+    {# Priorite (commune a tous les types) #}
+    <div class="champ">
+      <label for="nom_prio">Priorité</label>
+      <select id="nom_prio" name="nom_prio" required>
+        {% for p in priorites %}
+          <option value="{{ p }}">{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {# Assigne : l'assigne suggere (via tags) est pre-selectionne #}
+    <div class="champ">
+      <label for="assigne_id">Assigné</label>
+      <select id="assigne_id" name="assigne_id" required>
+        {% for a in assignes %}
+          <option value="{{ a.id }}" {% if a.id == infos.assigne_id %}selected{% endif %}>
+            {{ a.label }}{% if a.id == infos.assigne_id %} (suggéré){% endif %}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {# Plateforme : liste complete, l'auto-match est pre-selectionne s'il existe #}
+    <div class="champ">
+      <label for="plateforme_id">Plateforme (client)</label>
+      <select id="plateforme_id" name="plateforme_id" required>
+        {% if not match %}<option value="" disabled selected>— à choisir —</option>{% endif %}
+        {% for pf in plateformes %}
+          <option value="{{ pf.id }}" {% if match and pf.id == match.id %}selected{% endif %}>
+            {{ pf.label }}
+          </option>
+        {% endfor %}
+      </select>
+      {% if match %}
+        <p class="meta">Auto-détecté depuis « {{ ticket.plateforme_zendesk }} ».</p>
+      {% else %}
+        <p class="meta">Aucune correspondance automatique — à choisir manuellement.</p>
+      {% endif %}
+    </div>
+
+    <div class="champ">
+      <button class="bouton" type="submit">Vérifier avant création {{ icon('fleche', 16) }}</button>
+    </div>
+  </form>
+
+  <a class="retour" href="/">{{ icon('retour', 16) }} Retour à la liste</a>
+{% endif %}
+
+{% endblock %}

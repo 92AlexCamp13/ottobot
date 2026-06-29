@@ -1,0 +1,21 @@
+{# ===========================================================================
+   erreur.html — Page d'erreur lisible (robustesse, brief §6).
+
+   Affichee quand le moteur leve une ErreurOutil (config manquante, ticket
+   introuvable, API injoignable...). On montre un message clair, JAMAIS une
+   trace technique brute, et le serveur reste debout.
+=========================================================================== #}
+{% extends "base.html" %}
+{% from "base.html" import icon %}
+
+{% block titre %}Erreur — zendesk → jira{% endblock %}
+{% block nav_titre %}Erreur{% endblock %}
+
+{% block contenu %}
+  <h2 class="page-titre" style="margin-bottom:1.2rem;">Une erreur est survenue</h2>
+  <div class="statut echec">
+    <div class="entete-statut">{{ icon('alerte') }} Oups</div>
+    <p>{{ message }}</p>
+  </div>
+  <a class="retour" href="/">{{ icon('retour', 16) }} Retour à la liste des tickets</a>
+{% endblock %}

@@ -1,3 +1,15 @@
 # Dependances minimales (brief §4) : on evite les SDK lourds tant qu'on apprend.
 requests        # appels HTTP aux API REST Zendesk et Jira
 python-dotenv   # lecture des secrets depuis le fichier .env
+
+# --- Interface web locale (brief v2, ajoutee a l'etape 1) ---
+fastapi             # le framework web (les routes)
+uvicorn[standard]   # le serveur local qui fait tourner l'app FastAPI
+jinja2              # moteur de templates : les pages HTML "a trous"
+python-multipart    # permet a FastAPI de lire les formulaires HTML (POST)
+
+# --- Multi-utilisateur / prod (v3 : login + tokens Jira par utilisateur) ---
+itsdangerous        # cookies de session signes (Starlette SessionMiddleware)
+bcrypt              # hachage des mots de passe (jamais stockes en clair)
+cryptography        # chiffrement des tokens Jira au repos (Fernet)
+# NB : la base de comptes utilise sqlite3 (inclus dans la lib standard Python).

@@ -1,0 +1,73 @@
+{# ===========================================================================
+   resultat.html — Page affichee apres POST /ticket/{id}/creer.
+
+   Trois cas, decides par le serveur :
+     - ok = True            -> creation reussie (cle Jira + lien cliquable + recap)
+     - deja_converti = True -> bloque (le ticket portait deja une cle Jira)
+     - sinon                -> echec de creation (voir le terminal du serveur)
+=========================================================================== #}
+{% extends "base.html" %}
+{% from "base.html" import icon %}
+
+{% block titre %}Résultat — ZD-{{ ticket_id }}{% endblock %}
+{% block nav_titre %}Résultat de conversion{% endblock %}
+
+{% block contenu %}
+
+{% if ok %}
+  <div class="page-tete">
+    <h2 class="page-titre">Ticket Jira créé</h2>
+    <div class="page-sous">
+      <span class="mono"><span class="t-ambre">ZD-{{ ticket_id }}</span>
+        <span class="fleche">→</span> <span class="t-cyan">{{ cle }}</span></span>
+    </div>
+  </div>
+  <div class="statut cree">
+    <div class="entete-statut">{{ icon('check') }} Création réussie</div>
+    <p>Clé Jira :
+      <strong class="mono"><a href="{{ lien_jira }}" target="_blank">{{ icon('lien', 16) }} {{ cle }}</a></strong></p>
+    <p class="meta">Résumé : {{ resume }}</p>
+    <p class="meta">Priorité : {{ meta.priorite }} — Assigné : {{ meta.assigne }}</p>
+    <p class="meta">Plateforme : {{ meta.plateforme }}</p>
+    <p class="meta">Pièces jointes transférées : {{ nb_pj }}</p>
+    {% if writeback_ok %}
+      <p class="meta">Côté Zendesk : clé inscrite + tag « to-jira » retiré.</p>
+    {% endif %}
+  </div>
+
+  {% if not writeback_ok %}
+    <div class="statut bloque">
+      <div class="entete-statut">{{ icon('alerte') }} Action manuelle requise</div>
+      <p>Le Jira <strong class="mono">{{ cle }}</strong> a bien été créé, mais la clé n'a
+         <strong>pas pu être inscrite côté Zendesk</strong> (le ticket garde donc
+         le tag « to-jira » et son champ « Clé Jira liée » est vide).</p>
+      <p>À faire à la main pour éviter un doublon : inscris <strong class="mono">{{ cle }}</strong>
+         dans le champ « Clé Jira liée » du ticket #{{ ticket_id }} et retire le tag
+         « to-jira ». Sans ça, un prochain traitement recréerait un Jira en double.</p>
+    </div>
+  {% endif %}
+
+  <a class="bouton" href="/">Traiter un autre ticket {{ icon('fleche', 16) }}</a>
+
+{% elif deja_converti %}
+  <h2 class="page-titre" style="margin-bottom:1.2rem;">Ticket déjà converti</h2>
+  <div class="statut bloque">
+    <div class="entete-statut">{{ icon('alerte') }} Aucun doublon créé</div>
+    <p>Le ticket #{{ ticket_id }} portait déjà la clé
+       <strong class="mono">{{ cle }}</strong>. Aucun nouveau Jira n'a été créé (anti-doublon).</p>
+    <p><a href="{{ lien_jira }}" target="_blank">{{ icon('lien', 16) }} Ouvrir {{ cle }} dans Jira</a></p>
+  </div>
+  <a class="retour" href="/">{{ icon('retour', 16) }} Retour à la liste</a>
+
+{% else %}
+  <h2 class="page-titre" style="margin-bottom:1.2rem;">La création a échoué</h2>
+  <div class="statut echec">
+    <div class="entete-statut">{{ icon('croix') }} Échec de création</div>
+    <p>Le ticket Jira n'a pas pu être créé pour le ticket #{{ ticket_id }}.
+       Le détail de la réponse de Jira est affiché dans le terminal du serveur.
+       Aucune pièce jointe ni réécriture Zendesk n'a été effectuée.</p>
+  </div>
+  <a class="retour" href="/ticket/{{ ticket_id }}">{{ icon('retour', 16) }} Revenir au formulaire</a>
+{% endif %}
+
+{% endblock %}

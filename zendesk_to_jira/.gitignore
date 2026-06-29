@@ -11,3 +11,10 @@ __pycache__/
 
 # Journal des conversions (donnees d'execution, pas du code).
 conversions.csv
+
+# Base de comptes (mots de passe haches + tokens Jira chiffres). JAMAIS versionnee.
+comptes.db
+*.db
+
+# Logs du serveur en prod (launchd).
+logs/

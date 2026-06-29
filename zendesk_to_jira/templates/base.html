@@ -1,0 +1,426 @@
+{# ===========================================================================
+   base.html — Squelette commun a toutes les pages (template Jinja2).
+
+   Chaque page concrete fait {% extends "base.html" %} et ne remplit que le bloc
+   'contenu' (et parfois 'titre' / 'nav_titre' / 'nav_actif'). La barre de nav,
+   le footer "barre de statut" et TOUT le style vivent ici -> une seule source
+   de verite.
+
+   Identite visuelle : theme SOMBRE uniquement, registre "bel outil d'ingenierie".
+   La couleur encode le FLUX : ambre = la source (Zendesk), emeraude = l'action /
+   l'etat "bon", cyan = le technique / la destination Jira / le debug.
+
+   Rappel brief : AUCUN JavaScript, AUCUNE ressource externe (CDN/police/lien).
+   - Polices : on s'appuie sur la stack SYSTEME (San Francisco / Segoe pour l'UI,
+     SF Mono / Menlo pour le monospace) -> zero fichier a charger, 100% offline.
+   - Icones : SVG inline via la macro 'icon' ci-dessous (jeu Lucide, licence MIT,
+     style outline equivalent a Tabler). Couleur heritee via stroke="currentColor".
+=========================================================================== #}
+
+{# --- Macro d'icones : SVG au trait (outline, 24x24), inline. --- #}
+{% macro icon(nom, taille=20) -%}
+<svg class="icone" width="{{ taille }}" height="{{ taille }}" viewBox="0 0 24 24"
+     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+     stroke-linejoin="round" aria-hidden="true">
+{%- if nom == 'conversion' %}<path d="M16 3l4 4-4 4"/><path d="M20 7H4"/><path d="M8 21l-4-4 4-4"/><path d="M4 17h16"/>
+{%- elif nom == 'fleche' %}<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>
+{%- elif nom == 'retour' %}<path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/>
+{%- elif nom == 'appareil' %}<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>
+{%- elif nom == 'test' %}<path d="M9 3h6"/><path d="M10 3v7l-5 9a1 1 0 0 0 .9 1.5h12.2A1 1 0 0 0 19 19l-5-9V3"/><path d="M7 14h10"/>
+{%- elif nom == 'lien' %}<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+{%- elif nom == 'check' %}<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/>
+{%- elif nom == 'alerte' %}<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+{%- elif nom == 'croix' %}<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>
+{# --- Icones ajoutees pour la refonte (nav + footer) --- #}
+{%- elif nom == 'inbox' %}<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+{%- elif nom == 'user' %}<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+{%- elif nom == 'bouclier' %}<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>
+{%- elif nom == 'logout' %}<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>
+{%- elif nom == 'cadenas' %}<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+{%- elif nom == 'commit' %}<circle cx="12" cy="12" r="3"/><line x1="3" x2="9" y1="12" y2="12"/><line x1="15" x2="21" y1="12" y2="12"/>
+{%- elif nom == 'activite' %}<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+{%- endif %}
+</svg>
+{%- endmacro %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titre %}zendesk → jira{% endblock %}</title>
+  <style>
+    :root {
+      /* --- Fonds (du plus profond au plus clair) --- */
+      --fond-page:    #0E1117;  /* page */
+      --fond-nav:     #11161D;  /* barre de navigation */
+      --fond-footer:  #0B0F14;  /* footer + champs de saisie */
+      --fond-carte:   #141A22;  /* cartes */
+      --fond-discret: #10151C;  /* panneau bac-a-sable (mode test) */
+      --fond-actif:   #161D26;  /* onglet de nav actif / bouton secondaire */
+
+      /* --- Bordures --- */
+      --bordure:        #232A35;  /* hairline par defaut */
+      --bordure-forte:  #2C3542;  /* hover, controles */
+      --bordure-point:  #2A323D;  /* pointille (zones bac-a-sable) */
+
+      /* --- Texte --- */
+      --texte:         #E6EDF3;  /* primaire */
+      --texte-2:       #8B98A5;  /* secondaire */
+      --texte-attenue: #5C6B7A;  /* legendes, meta */
+      --texte-faible:  #3A4452;  /* placeholders */
+
+      /* --- Emeraude : action + statut "pret" (couleur principale) --- */
+      --em-plein:      #15C088;  /* plein de bouton */
+      --em-sur-plein:  #04201A;  /* texte sur le plein emeraude */
+      --em-texte:      #2DD4A7;  /* texte / icone accent */
+      --em-fond:       #10241D;  /* fond teinte */
+      --em-bordure:    #1C5B47;  /* bordure teintee */
+
+      /* --- Ambre : versant Zendesk (la SOURCE du flux) --- */
+      --am-texte:      #E0A33E;
+      --am-fond:       #241C12;
+      --am-bordure:    #5B4422;
+
+      /* --- Cyan : technique / debug / Jira --- */
+      --cy-texte:      #7FB7E8;
+      --cy-fond:       #10212F;
+      --cy-bordure:    #234255;
+
+      /* --- Rouge : echec (absent du brief, extension minimale et sobre) --- */
+      --rg-texte:      #F2666B;
+      --rg-fond:       #2A1416;
+      --rg-bordure:    #5B2629;
+
+      /* --- Polices (stack systeme, zero ressource externe) --- */
+      --police-ui:   -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --police-mono: ui-monospace, "SF Mono", "Menlo", "Cascadia Code", "Consolas", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--police-ui);
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--texte);
+      background: var(--fond-page);
+      line-height: 1.55;
+      /* footer "colle" en bas meme sur page courte */
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: var(--em-texte); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    strong { font-weight: 500; }
+    .mono { font-family: var(--police-mono); }
+    /* Utilitaires de couleur (encodage du flux : ambre=source, cyan=technique) */
+    .t-ambre { color: var(--am-texte); }
+    .t-cyan { color: var(--cy-texte); }
+    .t-attenue { color: var(--texte-attenue); }
+    .fleche { color: var(--texte-faible); }
+
+    /* ====================================================================
+       Barre de navigation (haut)
+       ==================================================================== */
+    .nav {
+      background: var(--fond-nav);
+      border-bottom: 1px solid var(--bordure);
+      padding: 0 20px;
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    /* Marque : logo carre + titre de page + sous-titre monospace du flux */
+    .nav-marque { display: flex; align-items: center; gap: .7rem; color: var(--texte); }
+    .nav-marque:hover { text-decoration: none; }
+    .nav-logo {
+      width: 34px; height: 34px; border-radius: 9px;
+      background: var(--em-fond); color: var(--em-texte);
+      border: 1px solid var(--em-bordure);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .nav-textes { display: flex; flex-direction: column; line-height: 1.25; }
+    .nav-titre { font-size: 14px; font-weight: 500; color: var(--texte); }
+    .nav-fil {
+      font-family: var(--police-mono); font-size: 11.5px; color: var(--texte-attenue);
+    }
+    .nav-fil .fleche { color: var(--em-texte); }
+
+    /* Liens : icone + label */
+    .nav-liens { display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; }
+    .nav-lien {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .4rem .65rem; border-radius: 8px;
+      color: var(--texte-2); font-size: 13px; font-weight: 400;
+    }
+    .nav-lien .icone { color: var(--texte-attenue); }
+    .nav-lien:hover { background: var(--fond-actif); color: var(--texte); text-decoration: none; }
+    .nav-lien.est-actif { background: var(--fond-actif); color: var(--texte); }
+    .nav-lien.est-actif .icone { color: var(--em-texte); }
+
+    /* Identite utilisateur */
+    .nav-user { display: flex; align-items: center; gap: .5rem; margin-left: .35rem;
+                padding-left: .6rem; border-left: 1px solid var(--bordure); }
+    .nav-avatar {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--cy-fond); color: var(--cy-texte); border: 1px solid var(--cy-bordure);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 500; text-transform: lowercase; flex-shrink: 0;
+    }
+    .nav-prenom { color: var(--texte-2); font-size: 13px; }
+    .badge-role {
+      font-family: var(--police-mono); font-size: 11px;
+      color: var(--em-texte); background: var(--em-fond);
+      border: 1px solid var(--em-bordure); border-radius: 8px; padding: .05rem .4rem;
+    }
+    .nav-logout { display: inline-flex; color: var(--texte-attenue); padding: .3rem; border-radius: 8px; }
+    .nav-logout:hover { color: var(--texte); background: var(--fond-actif); }
+
+    /* ====================================================================
+       Colonne de contenu centree
+       ==================================================================== */
+    .conteneur { width: 100%; max-width: 760px; margin: 2.2rem auto; padding: 0 1.25rem; flex: 1 0 auto; }
+    h1 { font-size: 20px; font-weight: 500; margin: 0 0 1.2rem; letter-spacing: .1px; }
+    h2 { font-size: 16px; font-weight: 500; margin: 1.8rem 0 .8rem; color: var(--texte); }
+
+    /* En-tete de page (titre + badge mono + sous-titre live) */
+    .page-tete { margin-bottom: 1.6rem; }
+    .page-titre { display: flex; align-items: center; gap: .55rem; font-size: 19px;
+                  font-weight: 500; margin: 0; }
+    .tag-mono {
+      font-family: var(--police-mono); font-size: 12px; font-weight: 400;
+      color: var(--em-texte); background: var(--em-fond);
+      border: 1px solid var(--em-bordure); border-radius: 8px; padding: .1rem .5rem;
+    }
+    .page-sous { display: flex; align-items: center; gap: .5rem; margin-top: .55rem;
+                 color: var(--texte-2); font-size: 13px; }
+    .compteur-mono { font-family: var(--police-mono); color: var(--texte); }
+
+    /* Pastille verte pulsee (etat "live") */
+    .point-live { width: 8px; height: 8px; border-radius: 50%; background: var(--em-texte);
+                  flex-shrink: 0; animation: pulse-live 2.4s ease-in-out infinite; }
+    @keyframes pulse-live { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+    /* ====================================================================
+       Cartes (liste des tickets, comptes admin)
+       ==================================================================== */
+    .carte {
+      background: var(--fond-carte); border: 1px solid var(--bordure); border-radius: 12px;
+      padding: .9rem 1rem; margin: .65rem 0;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .carte:hover { border-color: var(--bordure-forte); }
+    .carte-gauche { display: flex; align-items: center; gap: .85rem; min-width: 0; }
+    /* Pastille d'icone teintee AMBRE = cote source (Zendesk) */
+    .pastille-icone {
+      width: 38px; height: 38px; border-radius: 9px;
+      background: var(--am-fond); color: var(--am-texte); border: 1px solid var(--am-bordure);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    /* Variante CYAN = identite / compte (page admin), pas un ticket Zendesk */
+    .pastille-icone.identite {
+      background: var(--cy-fond); color: var(--cy-texte); border-color: var(--cy-bordure);
+    }
+    .carte .sujet { font-weight: 400; color: var(--texte);
+                    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* Ligne meta monospace : "ZD-4942 → jira" (num en ambre, le reste attenue) */
+    .carte .num { font-family: var(--police-mono); font-size: 12px; color: var(--texte-attenue);
+                  margin-top: .15rem; }
+    .carte .num .source { color: var(--am-texte); }
+    .carte .num .fleche { color: var(--texte-faible); }
+
+    /* ====================================================================
+       Boutons
+       ==================================================================== */
+    .bouton, .bouton-secondaire, button {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .5rem .9rem; border-radius: 9px; font-size: 13px;
+      font-weight: 500; font-family: var(--police-ui);
+      cursor: pointer; white-space: nowrap; border: 1px solid transparent;
+    }
+    .bouton { background: var(--em-plein); color: var(--em-sur-plein); }
+    .bouton:hover { filter: brightness(1.08); text-decoration: none; }
+    .bouton-secondaire {
+      background: var(--fond-actif); color: var(--texte);
+      border-color: var(--bordure-forte);
+    }
+    .bouton-secondaire:hover { border-color: var(--texte-attenue); text-decoration: none; }
+
+    /* ====================================================================
+       Formulaires
+       ==================================================================== */
+    label { font-weight: 400; display: block; margin-bottom: .4rem; color: var(--texte-2); }
+    select, input[type=text], input[type=password], textarea {
+      padding: .55rem .65rem; border: 1px solid var(--bordure-forte); border-radius: 8px;
+      font-size: 14px; width: 100%; max-width: 430px; box-sizing: border-box;
+      background: var(--fond-footer); color: var(--texte); font-family: var(--police-ui);
+    }
+    select { appearance: none; }
+    textarea { max-width: 100%; font-family: var(--police-mono); font-size: 13px;
+               line-height: 1.55; resize: vertical; }
+    ::placeholder { color: var(--texte-faible); }
+    select:focus, input[type=text]:focus, input[type=password]:focus, textarea:focus {
+      outline: none; border-color: var(--em-bordure);
+      box-shadow: 0 0 0 1px var(--em-bordure);
+    }
+    .champ { margin: 1.1rem 0; }
+
+    /* ====================================================================
+       Panneaux de lecture / mode test
+       ==================================================================== */
+    .lecture {
+      background: var(--fond-carte); border: 1px solid var(--bordure); border-radius: 12px;
+      padding: 1rem 1.2rem; margin-bottom: 1.5rem;
+    }
+    .meta { color: var(--texte-2); font-size: 13px; margin: .25rem 0; }
+    .meta.pj, .pj { color: var(--texte-2); font-size: 13px; }
+    .desc {
+      white-space: pre-wrap; background: var(--fond-footer); border: 1px solid var(--bordure);
+      border-radius: 8px; padding: .8rem; max-height: 320px; overflow: auto;
+      margin-top: .5rem; font-family: var(--police-mono); font-size: 13px; color: var(--texte-2);
+    }
+
+    /* Mode test : zone "bac a sable", bordure POINTILLEE, accent CYAN */
+    .test {
+      background: var(--fond-discret); border: 1px dashed var(--bordure-point);
+      border-radius: 12px; padding: 1.2rem; margin-top: 2rem;
+    }
+    .test-titre { display: flex; align-items: center; gap: .5rem;
+                  font-weight: 500; color: var(--texte-2); margin-bottom: .9rem; }
+    .test-titre .icone { color: var(--cy-texte); }
+    .badge-debug {
+      font-family: var(--police-mono); font-size: 11px;
+      color: var(--cy-texte); background: var(--cy-fond);
+      border: 1px solid var(--cy-bordure); border-radius: 8px; padding: .05rem .4rem;
+    }
+    /* Champ avec prefixe "#" monospace */
+    .saisie-prefixe { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .champ-diese { display: flex; align-items: center; flex: 1 1 200px; max-width: 280px;
+                   background: var(--fond-footer); border: 1px solid var(--bordure-forte);
+                   border-radius: 8px; padding: 0 .65rem; }
+    .champ-diese:focus-within { border-color: var(--em-bordure); box-shadow: 0 0 0 1px var(--em-bordure); }
+    .champ-diese .diese { font-family: var(--police-mono); color: var(--texte-faible); }
+    .champ-diese input { border: none; background: transparent; box-shadow: none !important;
+                         padding: .55rem .35rem; font-family: var(--police-mono); }
+    .champ-diese input:focus { outline: none; }
+
+    .vide { color: var(--texte-2); display: flex; align-items: center; gap: .5rem; }
+    .vide .icone { color: var(--em-texte); }
+
+    /* ====================================================================
+       Lien de retour
+       ==================================================================== */
+    .retour { display: inline-flex; align-items: center; gap: .35rem;
+              color: var(--texte-attenue); font-size: 13px; margin-top: 1.2rem; }
+    .retour:hover { color: var(--texte); text-decoration: none; }
+
+    /* ====================================================================
+       Langage de statut (resultats / blocages / erreurs)
+       ==================================================================== */
+    .statut { border: 1px solid; border-radius: 12px; padding: 1.1rem 1.2rem;
+              margin-bottom: 1.25rem; }
+    .statut .entete-statut { display: flex; align-items: center; gap: .5rem;
+                             font-weight: 500; font-size: 15px; margin: 0 0 .6rem; }
+    .statut p { color: var(--texte); margin: .4rem 0; }
+    .statut .meta { color: var(--texte-2); }
+    .statut.cree   { border-color: var(--em-bordure); background: var(--em-fond); }
+    .statut.cree   .entete-statut { color: var(--em-texte); }
+    .statut.bloque { border-color: var(--am-bordure); background: var(--am-fond); }
+    .statut.bloque .entete-statut { color: var(--am-texte); }
+    .statut.echec  { border-color: var(--rg-bordure); background: var(--rg-fond); }
+    .statut.echec  .entete-statut { color: var(--rg-texte); }
+
+    /* ====================================================================
+       Page admin
+       ==================================================================== */
+    .admin-actions { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+    .admin-inline { display: flex; gap: .4rem; align-items: center; }
+    .admin-inline input[type=password] { max-width: 180px; }
+    .case { font-weight: 400; display: flex; align-items: center; gap: .45rem; color: var(--texte-2); }
+    .case input { width: auto; }
+
+    /* ====================================================================
+       Footer — BARRE DE STATUT (facon editeur de code / terminal)
+       Tout en monospace. Statuts a gauche, metadonnees systeme a droite.
+       ==================================================================== */
+    .statusbar {
+      flex-shrink: 0;
+      background: var(--fond-footer); border-top: 1px solid var(--bordure);
+      font-family: var(--police-mono); font-size: 11.5px; color: var(--texte-attenue);
+      padding: .4rem 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap;
+    }
+    .sb-groupe { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .sb-item { display: inline-flex; align-items: center; gap: .35rem; }
+    .sb-item .icone { color: var(--texte-attenue); }
+    /* Pastille de statut : verte si data-statut="ok" (facilement dynamisable) */
+    .sb-point { width: 7px; height: 7px; border-radius: 50%; background: var(--texte-faible); }
+    .sb-item[data-statut="ok"] .sb-point { background: var(--em-texte); }
+    .sb-item[data-statut="ko"] .sb-point { background: var(--rg-texte); }
+    .sb-uptime { color: var(--em-texte); }
+    .sb-uptime .icone { color: var(--em-texte); }
+  </style>
+</head>
+<body>
+  {# Capture du marqueur d'onglet actif (chaque page surcharge 'nav_actif'). #}
+  {% set nav_actif %}{% block nav_actif %}{% endblock %}{% endset %}
+
+  <header class="nav">
+    <a class="nav-marque" href="/">
+      <span class="nav-logo">{{ icon('conversion', 18) }}</span>
+      <span class="nav-textes">
+        <span class="nav-titre">{% block nav_titre %}Tickets à convertir{% endblock %}</span>
+        <span class="nav-fil">zendesk <span class="fleche">→</span> jira</span>
+      </span>
+    </a>
+
+    {% if utilisateur %}
+      <nav class="nav-liens">
+        <a class="nav-lien {% if nav_actif|trim == 'liste' %}est-actif{% endif %}" href="/">
+          {{ icon('inbox', 18) }} <span>file</span>
+        </a>
+        <a class="nav-lien {% if nav_actif|trim == 'profil' %}est-actif{% endif %}" href="/profil">
+          {{ icon('user', 18) }} <span>profil</span>
+        </a>
+        {% if utilisateur.est_admin %}
+          <a class="nav-lien {% if nav_actif|trim == 'admin' %}est-actif{% endif %}" href="/admin">
+            {{ icon('bouclier', 18) }} <span>admin</span>
+          </a>
+        {% endif %}
+
+        <span class="nav-user">
+          <span class="nav-avatar">{{ utilisateur.identifiant[0] }}</span>
+          <span class="nav-prenom">{{ utilisateur.identifiant }}</span>
+          {% if utilisateur.est_admin %}<span class="badge-role">admin</span>{% endif %}
+          <a class="nav-logout" href="/logout" title="Déconnexion">{{ icon('logout', 18) }}</a>
+        </span>
+      </nav>
+    {% endif %}
+  </header>
+
+  <main class="conteneur">
+    {% block contenu %}{% endblock %}
+  </main>
+
+  {# --- Footer : barre de statut. Les indicateurs sont STATIQUES pour l'instant
+       mais le HTML est structure pour etre branche sur de vrais health-checks
+       plus tard (changer data-statut="ok"/"ko" cote backend, injecter hash/uptime). --- #}
+  <footer class="statusbar">
+    <div class="sb-groupe">
+      <span class="sb-item" data-statut="ok"><span class="sb-point"></span>{{ icon('inbox', 13) }} zendesk</span>
+      <span class="sb-item" data-statut="ok"><span class="sb-point"></span>{{ icon('conversion', 13) }} jira</span>
+      <span class="sb-item" data-statut="ok"><span class="sb-point"></span>{{ icon('activite', 13) }} tailnet</span>
+    </div>
+    <div class="sb-groupe">
+      <span class="sb-item">{{ icon('cadenas', 13) }} mono-process</span>
+      <span class="sb-item">{{ icon('commit', 13) }} {{ commit_hash | default('dev', true) }}</span>
+      <span class="sb-item sb-uptime">{{ icon('activite', 13) }} {{ uptime | default('online', true) }}</span>
+    </div>
+  </footer>
+</body>
+</html>

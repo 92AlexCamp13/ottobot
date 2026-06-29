@@ -1,0 +1,37 @@
+{# ===========================================================================
+   login.html — Page de connexion (route GET/POST /login).
+   Identifiant + mot de passe -> session. Aucun secret cote navigateur.
+=========================================================================== #}
+{% extends "base.html" %}
+{% from "base.html" import icon %}
+
+{% block titre %}Connexion — zendesk → jira{% endblock %}
+{% block nav_titre %}Connexion{% endblock %}
+
+{% block contenu %}
+  <div class="page-tete">
+    <h2 class="page-titre">Connexion</h2>
+    <div class="page-sous"><span class="mono">accès privé · tailnet</span></div>
+  </div>
+
+  {% if erreur %}
+    <div class="statut echec">
+      <div class="entete-statut">{{ icon('alerte') }} Échec</div>
+      <p>{{ erreur }}</p>
+    </div>
+  {% endif %}
+
+  <form action="/login" method="post" class="lecture">
+    <div class="champ">
+      <label for="identifiant">Identifiant</label>
+      <input type="text" id="identifiant" name="identifiant" required autofocus>
+    </div>
+    <div class="champ">
+      <label for="mot_de_passe">Mot de passe</label>
+      <input type="password" id="mot_de_passe" name="mot_de_passe" required>
+    </div>
+    <div class="champ">
+      <button class="bouton" type="submit">Se connecter {{ icon('fleche', 16) }}</button>
+    </div>
+  </form>
+{% endblock %}

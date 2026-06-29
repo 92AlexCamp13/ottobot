@@ -14,6 +14,8 @@ Usage :
     python run_batch.py
 """
 
+import sys
+
 import noyau
 import create_jira
 
@@ -92,4 +94,10 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    # Erreur de setup (config, connexion, lecture options) -> message propre + sortie.
+    # Les erreurs sur UN ticket sont deja isolees dans la boucle (le lot continue).
+    try:
+        main()
+    except noyau.ErreurOutil as erreur:
+        print(f"  [X] {erreur}")
+        sys.exit(1)

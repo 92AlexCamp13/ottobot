@@ -1,0 +1,73 @@
+{# ===========================================================================
+   accueil.html — La page d'accueil (route GET /).
+
+   Elle "herite" du squelette base.html et ne remplit que le bloc 'contenu'.
+   Le serveur lui passe une variable 'tickets' = liste de {id, subject}.
+
+   Jinja2 cote serveur :
+     - {{ ... }}        affiche une valeur,
+     - {% for/if %}     boucle / condition,
+     - le tout est calcule AVANT l'envoi : le navigateur ne recoit que du HTML.
+=========================================================================== #}
+{% extends "base.html" %}
+{% from "base.html" import icon %}
+
+{% block titre %}Tickets à convertir — zendesk → jira{% endblock %}
+{% block nav_actif %}liste{% endblock %}
+
+{% block contenu %}
+  {# En-tete de page : titre + badge mono du tag, puis ligne "live" (compteur). #}
+  <div class="page-tete">
+    <h2 class="page-titre">Tickets à convertir <span class="tag-mono">to-jira</span></h2>
+    <div class="page-sous">
+      <span class="point-live"></span>
+      <span class="compteur-mono">{{ tickets | length }}</span>
+      <span>en attente de conversion</span>
+    </div>
+  </div>
+
+  {% if utilisateur and not utilisateur.jira_account_id %}
+    <div class="statut bloque">
+      <div class="entete-statut">{{ icon('alerte') }} Profil Jira à configurer</div>
+      <p>Tu n'as pas encore renseigné ton token Jira. Tant que ce n'est pas fait,
+         les tickets ne pourront pas être créés sous ton profil.</p>
+      <p><a href="/profil">{{ icon('fleche', 16) }} Configurer mon profil Jira</a></p>
+    </div>
+  {% endif %}
+
+  {% if tickets %}
+    {% for t in tickets %}
+      <div class="carte">
+        <div class="carte-gauche">
+          {# Pastille AMBRE = cote source Zendesk #}
+          <span class="pastille-icone">{{ icon('appareil') }}</span>
+          <div style="min-width:0;">
+            <div class="sujet">{{ t.subject }}</div>
+            {# Ligne du FLUX : ZD-4942 → jira #}
+            <div class="num"><span class="source">ZD-{{ t.id }}</span>
+                 <span class="fleche">→</span> jira</div>
+          </div>
+        </div>
+        <a class="bouton" href="/ticket/{{ t.id }}">Traiter {{ icon('fleche', 16) }}</a>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="vide">{{ icon('check') }} Aucun ticket taggé « to-jira » pour le moment.</p>
+  {% endif %}
+
+  {# --- Mode test : traiter un ticket par son ID, meme s'il n'est pas dans la liste.
+       Zone "bac a sable" -> bordure pointillee + accent cyan. --- #}
+  <div class="test">
+    <div class="test-titre">{{ icon('test') }} Mode test <span class="badge-debug">debug</span></div>
+    <form action="/aller-ticket" method="get">
+      <label for="id">Ouvrir un ticket par son ID</label>
+      <div class="saisie-prefixe">
+        <span class="champ-diese">
+          <span class="diese">#</span>
+          <input type="text" id="id" name="id" placeholder="4927" required>
+        </span>
+        <button class="bouton-secondaire" type="submit">Ouvrir {{ icon('fleche', 16) }}</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

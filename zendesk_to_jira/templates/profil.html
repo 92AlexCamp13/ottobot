@@ -1,0 +1,68 @@
+{# ===========================================================================
+   profil.html — Profil utilisateur (route GET/POST /profil).
+   L'utilisateur saisit son email + token API Jira. A la soumission, le token
+   est VALIDE aupres de Jira (/myself) puis CHIFFRE avant stockage. C'est ce
+   token qui servira a creer les tickets sous SON profil (createur = lui).
+=========================================================================== #}
+{% extends "base.html" %}
+{% from "base.html" import icon %}
+
+{% block titre %}Mon profil — zendesk → jira{% endblock %}
+{% block nav_actif %}profil{% endblock %}
+{% block nav_titre %}Mon profil Jira{% endblock %}
+
+{% block contenu %}
+  <div class="page-tete">
+    <h2 class="page-titre">Mon profil Jira</h2>
+    <div class="page-sous">
+      {% if jira_ok %}
+        <span class="point-live"></span><span class="mono t-cyan">token configuré</span>
+      {% else %}
+        <span class="mono t-attenue">token non configuré</span>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if succes %}
+    <div class="statut cree">
+      <div class="entete-statut">{{ icon('check') }} Token enregistré</div>
+      <p>Connecté à Jira en tant que <strong>{{ jira_nom }}</strong> ({{ jira_email }}).
+         Tes prochains tickets seront créés sous ton profil.</p>
+    </div>
+  {% endif %}
+  {% if erreur %}
+    <div class="statut echec">
+      <div class="entete-statut">{{ icon('alerte') }} Échec</div>
+      <p>{{ erreur }}</p>
+    </div>
+  {% endif %}
+
+  <div class="lecture">
+    {% if jira_ok %}
+      <p class="meta">{{ icon('check', 15) }} Token Jira configuré — connecté en tant que
+         <strong>{{ jira_nom }}</strong> ({{ jira_email }}).</p>
+      <p class="meta">Tu peux le remplacer ci-dessous (par ex. si tu as régénéré ton token).</p>
+    {% else %}
+      <p class="meta">{{ icon('alerte', 15) }} Aucun token Jira configuré — indispensable
+         pour créer des tickets sous ton profil.</p>
+    {% endif %}
+  </div>
+
+  <form action="/profil" method="post" class="lecture">
+    <div class="champ">
+      <label for="jira_email">Email Jira (Atlassian)</label>
+      <input type="text" id="jira_email" name="jira_email" value="{{ jira_email or '' }}" required>
+    </div>
+    <div class="champ">
+      <label for="jira_token">Token API Jira</label>
+      <input type="password" id="jira_token" name="jira_token" required>
+      <p class="meta">À générer sur <strong>id.atlassian.com → Sécurité → Créer et gérer
+         les tokens d'API</strong>. Il est chiffré avant d'être stocké.</p>
+    </div>
+    <div class="champ">
+      <button class="bouton" type="submit">Valider et enregistrer {{ icon('fleche', 16) }}</button>
+    </div>
+  </form>
+
+  <a class="retour" href="/">{{ icon('retour', 16) }} Retour à la liste</a>
+{% endblock %}
